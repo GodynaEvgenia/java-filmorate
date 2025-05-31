@@ -1,12 +1,39 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
+
+import java.time.LocalDate;
 
 /**
  * Film.
  */
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
 public class Film {
+    Long id;
+    String name;
+    String description;
+    LocalDate releaseDate;
+    int duration;
+
+    public void validate() {
+        if (getName() == null || getName().isBlank()) {
+            throw new ValidationException("Название не может быть пустым");
+        }
+
+        if (getDescription().length() > 200) {
+            throw new ValidationException("Максимальная длина описания не может быть более 200 символов");
+        }
+
+        if (getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+            throw new ValidationException("Дата релиза не может быть ранее 28 декабря 1895 года");
+        }
+
+        if (getDuration() < 0) {
+            throw new ValidationException("Продолжительность фильма должна быть положительным числом");
+        }
+
+    }
 }
