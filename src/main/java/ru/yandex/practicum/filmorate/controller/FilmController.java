@@ -26,7 +26,6 @@ public class FilmController {
 
         film.validate();
         film.setId(getNextId());
-        film.setReleaseDate(LocalDate.now());
         films.put(film.getId(), film);
         return film;
     }
