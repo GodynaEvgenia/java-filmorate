@@ -2,24 +2,22 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NonNull;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import java.time.LocalDate;
 
-/**
- * Film.
- */
 @Data
 @AllArgsConstructor
 public class Film {
-    Long id;
-    String name;
-    String description;
-    LocalDate releaseDate;
-    int duration;
+    private Long id;
+    private String name;
+    private String description;
+    private LocalDate releaseDate;
+    private int duration;
 
     public void validate() {
-        if (getName() == null || getName().isBlank()) {
+       if (getName() == null || getName().isBlank()) {
             throw new ValidationException("Название не может быть пустым");
         }
 
