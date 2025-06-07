@@ -1,10 +1,12 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,10 +14,21 @@ import java.util.stream.Collectors;
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
+    UserService userService;
+
+    @Autowired
+    public InMemoryFilmStorage(UserService userService) {
+        this.userService = userService;
+    }
 
     @Override
     public Collection<Film> findAll() {
         return films.values();
+    }
+
+    @Override
+    public List<Film> getAll() {
+        return films.values().stream().toList();
     }
 
     @Override
@@ -64,7 +77,16 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void addLike(long id, long userId) {
-        films.get(id).getLikes().add(userId);
+        if (films.containsKey(id)) {
+            if (userService.findAll().containsKey(userId)) {
+                films.get(id).getLikes().add(userId);
+            } else {
+                throw new ResourceNotFoundException("Пользоваатель с идентификатором " + userId + " не найден");
+            }
+
+        } else {
+            throw new ResourceNotFoundException("Фильм с идентификатором " + id + " не найден");
+        }
     }
 
     @Override

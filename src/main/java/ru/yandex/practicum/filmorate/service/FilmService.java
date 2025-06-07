@@ -11,14 +11,20 @@ import java.util.List;
 @Service
 public class FilmService {
     FilmStorage filmStorage;
+    UserService userService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage) {
+    public FilmService(FilmStorage filmStorage, UserService userService) {
         this.filmStorage = filmStorage;
+        this.userService = userService;
     }
 
     public Film get(long filmId) {
         return filmStorage.get(filmId);
+    }
+
+    public List<Film> getAll() {
+        return filmStorage.getAll();
     }
 
     public Film create(Film film) throws ValidationException {

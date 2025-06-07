@@ -11,8 +11,8 @@ public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
 
     @Override
-    public Collection<User> findAll() {
-        return users.values();
+    public Map<Long, User> findAll() {
+        return users;
     }
 
     @Override
@@ -23,11 +23,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public List<User> getAll() {
-        return users.values().stream().toList();/*List<User> userList = new ArrayList<>();
-        for (User user : users) {
-            userList.add(user);
-        }
-        return userList;*/
+        return users.values().stream().toList();
     }
 
     @Override

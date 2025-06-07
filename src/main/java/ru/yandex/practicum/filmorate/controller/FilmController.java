@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.AppError;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,10 +19,17 @@ import java.util.Optional;
 @ControllerAdvice
 public class FilmController {
     FilmService filmService;
+    UserService userService;
 
     @Autowired
-    public FilmController(FilmService filmService) {
+    public FilmController(FilmService filmService, UserService userService) {
         this.filmService = filmService;
+        this.userService = userService;
+    }
+
+    @GetMapping()
+    public List<Film> getAll() {
+        return filmService.getAll();
     }
 
     @GetMapping("/{filmId}")
@@ -49,8 +57,8 @@ public class FilmController {
         filmService.deleteLike(id, userId);
     }
 
-    @GetMapping("/popular/{count}")
-    public List<Film> getPopular(@RequestParam(defaultValue = "10") int count) {
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count) {
         return filmService.getPopular(count);
     }
 
