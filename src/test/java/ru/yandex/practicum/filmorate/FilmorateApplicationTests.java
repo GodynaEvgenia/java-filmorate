@@ -27,7 +27,7 @@ class FilmorateApplicationTests {
 
         Exception exception = assertThrows(ValidationException.class, () -> film.validate());
 
-        assertEquals("Название не может быть пустым", exception.getMessage());
+        assertEquals("Название фильма не может быть пустым", exception.getMessage());
     }
 
     @Test
