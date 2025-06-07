@@ -1,56 +1,58 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    UserService userService;
 
-    private final Map<Long, User> users = new HashMap<>();
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
-    @GetMapping
-    public Collection<User> findAll() {
-        return users.values();
+    @GetMapping("/{userId}")
+    public Optional<User> findById(@PathVariable long userId) {
+        return Optional.ofNullable(userService.get(userId));
     }
 
     @PostMapping
     public User create(@RequestBody User user) {
-        user.validate();
-        user.setId(getNextId());
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        users.put(user.getId(), user);
-        return user;
+        return userService.create(user);
     }
 
     @PutMapping()
     public User update(@RequestBody User user) {
-        user.validate();
-        User userInMemory = users.get(user.getId());
-        userInMemory.setEmail(user.getEmail());
-        userInMemory.setLogin(user.getLogin());
-        if (user.getName() == null || user.getName().isBlank()) {
-            userInMemory.setName(user.getLogin());
-        } else {
-            userInMemory.setName(user.getName());
-        }
-        userInMemory.setBirthday(user.getBirthday());
-
-        return user;
+        return userService.update(user);
     }
 
-    private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    @PutMapping("/{id}/friends/{friendId}") // добавление в друзья.
+    public void addFriend(@PathVariable long id,
+                          @PathVariable long friendId) {
+        userService.addFriend(id, friendId);
     }
+
+    @DeleteMapping("/{id}/friends/{friendId}") //удаление из друзей.
+    public void deleteFriend(@PathVariable long id,
+                             @PathVariable long friendId) {
+        userService.deleteFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends") //возвращаем список пользователей, являющихся его друзьями.
+    public Set<User> getFriends(@PathVariable long id) {
+        return userService.getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}") //список друзей, общих с другим пользователем.
+    public Optional<Set<User>> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
+        return Optional.of(userService.getCommonFriends(id, otherId));
+    }
+
 }
