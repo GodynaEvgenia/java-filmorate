@@ -34,16 +34,18 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film update(@RequestBody Film film) throws ValidationException {
+        if (films.containsKey(film.getId())) {
+            film.validate();
+            Film filmInMemory = films.get(film.getId());
+            filmInMemory.setName(film.getName());
+            filmInMemory.setDescription(film.getDescription());
+            filmInMemory.setReleaseDate(film.getReleaseDate());
+            filmInMemory.setDuration(film.getDuration());
+            return film;
+        } else {
+            throw new ResourceNotFoundException("Фильм с идентификатором " + film.getId() + " не найден");
+        }
 
-        film.validate();
-
-        Film filmInMemory = films.get(film.getId());
-        filmInMemory.setName(film.getName());
-        filmInMemory.setDescription(film.getDescription());
-        filmInMemory.setReleaseDate(film.getReleaseDate());
-        filmInMemory.setDuration(film.getDuration());
-
-        return film;
     }
 
     @Override

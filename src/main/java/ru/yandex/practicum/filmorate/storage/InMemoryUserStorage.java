@@ -77,7 +77,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void addFriend(long userId, long friendId) {
-        //User user = get(userId);
         User user = users.get(userId);
         user.getFriends().add(friendId);
         User friend = get(friendId);
@@ -94,12 +93,17 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public Set<User> getFriends(long userId) {
-        Set<User> friendsSet = new HashSet<>();
-        Set<Long> friends = users.get(userId).getFriends();
-        for (Long friendId : friends) {
-            friendsSet.add(get(friendId));
+        if (users.containsKey(userId)) {
+            Set<User> friendsSet = new HashSet<>();
+            Set<Long> friends = users.get(userId).getFriends();
+            for (Long friendId : friends) {
+                friendsSet.add(get(friendId));
+            }
+            return friendsSet;
+        } else {
+            throw new ResourceNotFoundException("Пользователь с идентификатором " + userId + " не найден");
         }
-        return friendsSet;
+
     }
 
     @Override
