@@ -91,7 +91,16 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void deleteLike(long id, long userId) {
-        films.get(id).getLikes().remove(userId);
+        if (films.containsKey(id)) {
+            if (userService.findAll().containsKey(userId)) {
+                films.get(id).getLikes().remove(userId);
+            } else {
+                throw new ResourceNotFoundException("Пользоваатель с идентификатором " + userId + " не найден");
+            }
+        } else {
+            throw new ResourceNotFoundException("Фильм с идентификатором " + id + " не найден");
+        }
+
     }
 
     @Override
