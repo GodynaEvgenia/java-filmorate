@@ -22,6 +22,15 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
+    public List<User> getAll() {
+        return users.values().stream().toList();/*List<User> userList = new ArrayList<>();
+        for (User user : users) {
+            userList.add(user);
+        }
+        return userList;*/
+    }
+
+    @Override
     public User create(User user) {
         user.validate();
         user.setId(getNextId());
@@ -34,18 +43,22 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User update(User user) {
-        user.validate();
-        User userInMemory = users.get(user.getId());
-        userInMemory.setEmail(user.getEmail());
-        userInMemory.setLogin(user.getLogin());
-        if (user.getName() == null || user.getName().isBlank()) {
-            userInMemory.setName(user.getLogin());
-        } else {
-            userInMemory.setName(user.getName());
-        }
-        userInMemory.setBirthday(user.getBirthday());
+        if (users.containsKey(user.getId())) {
+            user.validate();
+            User userInMemory = users.get(user.getId());
+            userInMemory.setEmail(user.getEmail());
+            userInMemory.setLogin(user.getLogin());
+            if (user.getName() == null || user.getName().isBlank()) {
+                userInMemory.setName(user.getLogin());
+            } else {
+                userInMemory.setName(user.getName());
+            }
+            userInMemory.setBirthday(user.getBirthday());
 
-        return user;
+            return user;
+        } else {
+            throw new ResourceNotFoundException("Пользователь с идентификатором " + user.getId() + " не найден");
+        }
     }
 
     @Override

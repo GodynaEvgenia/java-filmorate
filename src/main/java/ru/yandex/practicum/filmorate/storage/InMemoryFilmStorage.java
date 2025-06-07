@@ -78,7 +78,7 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .sorted(Comparator.comparingInt(f -> f.getLikes().size()))
                 .collect(Collectors.toList());
         Collections.reverse(sortedFilms);
-        return sortedFilms.subList(0, Math.min(count,films.size()));
+        return sortedFilms.subList(0, Math.min(count, films.size()));
     }
 }
 

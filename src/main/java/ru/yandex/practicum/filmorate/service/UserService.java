@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -18,6 +19,10 @@ public class UserService {
 
     public User get(long id) {
         return userStorage.get(id);
+    }
+
+    public List<User> getAll() {
+        return userStorage.getAll();
     }
 
     public User create(User user) {
