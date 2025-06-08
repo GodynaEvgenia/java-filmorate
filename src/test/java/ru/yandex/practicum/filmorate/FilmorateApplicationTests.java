@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate;
 
+import jakarta.validation.Valid;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -30,6 +31,7 @@ class FilmorateApplicationTests {
 
     @Test
     public void testEmptyFieldValidationFilmDuration() {
+        @Valid
         Film film = new Film(1L, "Наименование", "Описание", LocalDate.now(), -1000/*,
                 new HashSet<>(Arrays.asList(1L, 2L, 3L))*/);
 
