@@ -20,16 +20,19 @@ class FilmorateApplicationTests {
 
     @Test
     public void testEmptyFieldValidationFilmName() {
-        Film film = new Film(1L, "", "Описание", LocalDate.now(), 1000);
+        Film film = new Film(1L, "", "Описание", LocalDate.now(), 1000/*,
+                new HashSet<>(Arrays.asList(1L, 2L, 3L))*/);
 
         Exception exception = assertThrows(ValidationException.class, () -> film.validate());
 
-        assertEquals("Название не может быть пустым", exception.getMessage());
+        assertEquals("Название фильма не может быть пустым", exception.getMessage());
     }
 
     @Test
     public void testEmptyFieldValidationFilmDuration() {
-        Film film = new Film(1L, "Наименование", "Описание", LocalDate.now(), -1000);
+
+        Film film = new Film(1L, "Наименование", "Описание", LocalDate.now(), -1000/*,
+                new HashSet<>(Arrays.asList(1L, 2L, 3L))*/);
 
         Exception exception = assertThrows(ValidationException.class, () -> film.validate());
 
@@ -38,7 +41,8 @@ class FilmorateApplicationTests {
 
     @Test
     public void testEmptyFieldValidationUserLogin() {
-        User user = new User(1L, "mail@mail.ru", "", "name", LocalDate.now());
+        User user = new User(1L, "mail@mail.ru", "", "name", LocalDate.now()/*,
+                new HashSet<>(Arrays.asList(1L, 2L, 3L))*/);
 
         Exception exception = assertThrows(ValidationException.class, () -> user.validate());
 
@@ -47,7 +51,8 @@ class FilmorateApplicationTests {
 
     @Test
     public void testEmptyFieldValidationUserEmail() {
-        User user = new User(1L, "mailmail.ru", "login", "name", LocalDate.now());
+        User user = new User(1L, "mailmail.ru", "login", "name", LocalDate.now()/*,
+                new HashSet<>(Arrays.asList(1L, 2L, 3L))*/);
 
         Exception exception = assertThrows(ValidationException.class, () -> user.validate());
 
