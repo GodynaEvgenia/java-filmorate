@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,9 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/films")
-@ControllerAdvice
 public class FilmController {
-    FilmService filmService;
-    UserService userService;
+    private FilmService filmService;
+    private UserService userService;
 
     @Autowired
     public FilmController(FilmService filmService, UserService userService) {
@@ -33,17 +33,17 @@ public class FilmController {
     }
 
     @GetMapping("/{filmId}")
-    public Optional<Film> findById(@PathVariable long filmId) {
-        return Optional.ofNullable(filmService.get(filmId));
+    public Film findById(@PathVariable long filmId) {
+        return filmService.get(filmId);
     }
 
     @PostMapping()
-    public Film create(@RequestBody Film film) {
+    public Film create(@Valid @RequestBody Film film) {
         return filmService.create(film);
     }
 
     @PutMapping()
-    public Film update(@RequestBody Film film) {
+    public Film update(@Valid @RequestBody Film film) {
         return filmService.update(film);
     }
 
@@ -62,13 +62,4 @@ public class FilmController {
         return filmService.getPopular(count);
     }
 
-    @ExceptionHandler
-    public ResponseEntity<AppError> handleValidationException(final ValidationException e) {
-        return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), e.getMessage()), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<AppError> handleResourceNotFoundException(final ResourceNotFoundException e) {
-        return new ResponseEntity<>(new AppError(HttpStatus.NOT_FOUND.value(), e.getMessage()), HttpStatus.NOT_FOUND);
-    }
 }

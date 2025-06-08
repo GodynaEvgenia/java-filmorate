@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
@@ -10,7 +11,9 @@ import java.util.Set;
 @Data
 public class User {
     private Long id;
+    @NotBlank
     private String email;
+    @NotBlank
     private String login;
     private String name;
     private LocalDate birthday;
@@ -26,11 +29,11 @@ public class User {
     }
 
     public void validate() {
-        if (getEmail() == null || !getEmail().contains("@")) {
+        if (/*getEmail() == null || */!getEmail().contains("@")) {
             throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
         }
 
-        if (getLogin() == null || getLogin().isBlank()) {
+        if (/*getLogin() == null || */getLogin().isBlank()) {
             throw new ValidationException("Логин не может быть пустым и содержать пробелы");
         }
 

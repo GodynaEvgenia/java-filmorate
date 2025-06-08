@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
-    UserService userService;
+    private UserService userService;
 
     @Autowired
     public InMemoryFilmStorage(UserService userService) {
@@ -38,7 +38,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film create(@RequestBody Film film) throws ValidationException {
+    public Film create(@RequestBody Film film) {
         film.validate();
         film.setId(getNextId());
         films.put(film.getId(), film);
@@ -46,7 +46,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film update(@RequestBody Film film) throws ValidationException {
+    public Film update(@RequestBody Film film) {
         if (films.containsKey(film.getId())) {
             film.validate();
             Film filmInMemory = films.get(film.getId());
