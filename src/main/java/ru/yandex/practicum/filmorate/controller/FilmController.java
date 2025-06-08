@@ -11,9 +11,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/films")
+@ControllerAdvice
 public class FilmController {
-    private FilmService filmService;
-    private UserService userService;
+    private final FilmService filmService;
+    private final UserService userService;
 
     @Autowired
     public FilmController(FilmService filmService, UserService userService) {
@@ -32,7 +33,7 @@ public class FilmController {
     }
 
     @PostMapping()
-    public Film create(@Valid @RequestBody Film film) {
+    public Film create(@RequestBody Film film) {
         return filmService.create(film);
     }
 

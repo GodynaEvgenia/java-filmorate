@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
-    private UserService userService;
+    private final UserService userService;
 
     @Autowired
     public InMemoryFilmStorage(UserService userService) {
