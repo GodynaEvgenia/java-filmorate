@@ -1,52 +1,60 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/films")
+@ControllerAdvice
 public class FilmController {
+    private final FilmService filmService;
+    private final UserService userService;
 
-    private final Map<Long, Film> films = new HashMap<>();
-
-    @GetMapping
-    public Collection<Film> findAll() {
-        return films.values();
+    @Autowired
+    public FilmController(FilmService filmService, UserService userService) {
+        this.filmService = filmService;
+        this.userService = userService;
     }
 
-    @PostMapping
-    public Film create(@RequestBody Film film) {
+    @GetMapping()
+    public List<Film> getAll() {
+        return filmService.getAll();
+    }
 
-        film.validate();
-        film.setId(getNextId());
-        films.put(film.getId(), film);
-        return film;
+    @GetMapping("/{filmId}")
+    public Film findById(@PathVariable long filmId) {
+        return filmService.get(filmId);
+    }
+
+    @PostMapping()
+    public Film create(@RequestBody Film film) {
+        return filmService.create(film);
     }
 
     @PutMapping()
-    public Film update(@RequestBody Film film) {
-
-        film.validate();
-
-        Film filmInMemory = films.get(film.getId());
-        filmInMemory.setName(film.getName());
-        filmInMemory.setDescription(film.getDescription());
-        filmInMemory.setReleaseDate(film.getReleaseDate());
-        filmInMemory.setDuration(film.getDuration());
-
-        return film;
+    public Film update(@Valid @RequestBody Film film) {
+        return filmService.update(film);
     }
 
-    private long getNextId() {
-        long currentMaxId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    @PutMapping("/{id}/like/{userId}") //пользователь ставит лайк фильму.
+    public void addLike(@PathVariable long id, @PathVariable long userId) {
+        filmService.addLike(id, userId);
     }
+
+    @DeleteMapping("/{id}/like/{userId}") //пользователь удаляет лайк.
+    public void deleteLike(@PathVariable long id, @PathVariable long userId) {
+        filmService.deleteLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count) {
+        return filmService.getPopular(count);
+    }
+
 }
