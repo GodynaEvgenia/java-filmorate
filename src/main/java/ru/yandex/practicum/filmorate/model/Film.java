@@ -23,14 +23,18 @@ public class Film {
     @Min(1)
     private int duration;
     private Set<Long> likes;
+    private Set<String> genres;
+    private String rating;
 
-    public Film(Long id, String name, String description, LocalDate releaseDate, int duration) {
+    public Film(Long id, String name, String description, LocalDate releaseDate, int duration, String rating) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
         this.likes = new HashSet<>();
+        this.genres = new HashSet<>();
+        this.rating = rating;
     }
 
     public void validate() throws ValidationException {

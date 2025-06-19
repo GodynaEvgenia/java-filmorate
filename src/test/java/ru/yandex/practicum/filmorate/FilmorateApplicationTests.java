@@ -20,7 +20,7 @@ class FilmorateApplicationTests {
 
     @Test
     public void testEmptyFieldValidationFilmName() {
-        Film film = new Film(1L, "", "Описание", LocalDate.now(), 1000/*,
+        Film film = new Film(1L, "", "Описание", LocalDate.now(), 1000, "G"/*,
                 new HashSet<>(Arrays.asList(1L, 2L, 3L))*/);
 
         Exception exception = assertThrows(ValidationException.class, () -> film.validate());
@@ -31,7 +31,7 @@ class FilmorateApplicationTests {
     @Test
     public void testEmptyFieldValidationFilmDuration() {
 
-        Film film = new Film(1L, "Наименование", "Описание", LocalDate.now(), -1000/*,
+        Film film = new Film(1L, "Наименование", "Описание", LocalDate.now(), -1000, "G"/*,
                 new HashSet<>(Arrays.asList(1L, 2L, 3L))*/);
 
         Exception exception = assertThrows(ValidationException.class, () -> film.validate());
