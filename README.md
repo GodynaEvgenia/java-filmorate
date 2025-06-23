@@ -9,7 +9,6 @@
 - Список друзей -> user_friends <br>
 
 
-```markdown Пример запроса на выборку:
 ```sql 
 SELECT * FROM users WHERE id = 1;
 ```
