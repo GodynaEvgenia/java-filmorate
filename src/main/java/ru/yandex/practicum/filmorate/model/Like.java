@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class Like {
-    int id;
-    int user_id;
-    int film_id;
+    private int id;
+    private int user_id;
+    private int film_id;
 }
