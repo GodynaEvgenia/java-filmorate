@@ -19,11 +19,12 @@ public class FilmMapper {
     @Autowired
     public FilmMapper(RatingService ratingService,
                       GenreService genreService,
-                      FilmService filmService){
+                      FilmService filmService) {
         this.ratingService = ratingService;
         this.genreService = genreService;
         this.filmService = filmService;
     }
+
     public FilmDto toDto(Film film) {
         FilmDto dto = new FilmDto();
         dto.setId(film.getId());
