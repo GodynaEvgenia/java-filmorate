@@ -4,7 +4,10 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
@@ -88,29 +91,12 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Set<User> getFriends(long userId) {
-        if (users.containsKey(userId)) {
-            Set<User> friendsSet = new HashSet<>();
-            Set<Long> friends = users.get(userId).getFriends();
-            for (Long friendId : friends) {
-                friendsSet.add(get(friendId));
-            }
-            return friendsSet;
-        } else {
-            throw new ResourceNotFoundException("Пользователь с идентификатором " + userId + " не найден");
-        }
-
+    public List<User> getFriends(long userId) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public Set<User> getCommonFriends(long id, long otherId) {
-        Set<User> commonFriendsSet = new HashSet<>();
-        Set<Long> userFriends = users.get(id).getFriends();
-        Set<Long> otherUserFriends = users.get(otherId).getFriends();
-        userFriends.retainAll(otherUserFriends);
-        for (Long userId : userFriends) {
-            commonFriendsSet.add(users.get(userId));
-        }
-        return commonFriendsSet;
+    public List<User> getCommonFriends(long id, long otherId) {
+        throw new UnsupportedOperationException();
     }
 }

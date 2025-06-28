@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
@@ -76,41 +75,17 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void addLike(long id, long userId) {
-        if (films.containsKey(id)) {
-            if (userService.findAll().containsKey(userId)) {
-                films.get(id).getLikes().add(userId);
-            } else {
-                throw new ResourceNotFoundException("Пользоваатель с идентификатором " + userId + " не найден");
-            }
-
-        } else {
-            throw new ResourceNotFoundException("Фильм с идентификатором " + id + " не найден");
-        }
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void deleteLike(long id, long userId) {
-        if (films.containsKey(id)) {
-            if (userService.findAll().containsKey(userId)) {
-                films.get(id).getLikes().remove(userId);
-            } else {
-                throw new ResourceNotFoundException("Пользоваатель с идентификатором " + userId + " не найден");
-            }
-        } else {
-            throw new ResourceNotFoundException("Фильм с идентификатором " + id + " не найден");
-        }
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public List<Film> getPopular(int count) {
-        List<Film> filmList = films.values().stream()
-                .toList();
-        List<Film> sortedFilms = filmList.stream()
-                .sorted(Comparator.comparingInt(f -> f.getLikes().size()))
-                .collect(Collectors.toList());
-        Collections.reverse(sortedFilms);
-        return sortedFilms.subList(0, Math.min(count, films.size()));
+        throw new UnsupportedOperationException();
     }
 }
 

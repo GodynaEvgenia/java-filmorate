@@ -1,6 +1,6 @@
 # filmorate
 ## Схема базы данных <br>
-![Изображение](src/main/resources/Filmorate_v2.png)
+![Изображение](src/main/resources/diagram.png)
 - Фильмы -> films <br>
 - Жанры -> genre <br>
 - Рейтинг -> rating <br>

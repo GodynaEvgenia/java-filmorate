@@ -11,7 +11,8 @@ import java.sql.SQLException;
 public class RatingRowMapper implements RowMapper<Rating> {
     public Rating mapRow(ResultSet rs, int rowNum) throws SQLException {
         Rating rating = new Rating();
-        rating.setCode(rs.getString("code"));
+        rating.setId(rs.getInt("id"));
+        rating.setName(rs.getString("name"));
         rating.setDescription(rs.getString("description"));
         return rating;
     }

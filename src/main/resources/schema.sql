@@ -6,7 +6,7 @@
 
   CREATE TABLE IF NOT EXISTS rating(
       id integer AUTO_INCREMENT PRIMARY KEY,
-      code VARCHAR(50) NOT NULL,
+      name VARCHAR(50) NOT NULL,
       description VARCHAR(255)
   );
 
@@ -16,7 +16,7 @@
       description VARCHAR(255),
       release_date DATE,
       duration INT,
-      rating_code VARCHAR(255) REFERENCES rating
+      rating INT REFERENCES rating
   );
 
   CREATE TABLE IF NOT EXISTS users(
@@ -24,7 +24,7 @@
       name VARCHAR(100) NOT NULL,
       login VARCHAR(50) NOT NULL,
       email VARCHAR(100) NOT NULL,
-      birthdate DATE
+      birthday DATE
   );
 
   CREATE TABLE IF NOT EXISTS likes (

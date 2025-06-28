@@ -13,16 +13,16 @@ public class RatingDbStorage {
     RatingRepository ratingRepository;
 
     @Autowired
-    public RatingDbStorage(RatingRepository ratingRepository){
+    public RatingDbStorage(RatingRepository ratingRepository) {
         this.ratingRepository = ratingRepository;
     }
 
-    public Rating findById(int id){
+    public Rating findById(int id) {
         return ratingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Рейтинг не найден с ID: " + id));
     }
 
-    public List<Rating> findAll(){
+    public List<Rating> findAll() {
         return ratingRepository.findAll();
     }
 }

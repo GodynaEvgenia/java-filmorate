@@ -13,17 +13,16 @@ public class GenreDbStorage {
     GenreRepository genreRepository;
 
     @Autowired
-    public GenreDbStorage(GenreRepository genreRepository){
+    public GenreDbStorage(GenreRepository genreRepository) {
         this.genreRepository = genreRepository;
     }
 
-    public Genre findById(int id){
-       return genreRepository.findById(id)
+    public Genre findById(long id) {
+        return genreRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Жанр не найден с ID: " + id));
-
     }
 
-    public List<Genre> findAll(){
+    public List<Genre> findAll() {
         return genreRepository.findAll();
     }
 }

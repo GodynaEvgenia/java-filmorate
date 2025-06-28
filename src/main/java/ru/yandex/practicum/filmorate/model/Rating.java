@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class Rating {
-    private String code;
+    private int id;
+    private String name;
     private String description;
 }

@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.Date;
@@ -18,7 +17,7 @@ public class UserRowMapper implements RowMapper<User> {
         user.setName(rs.getString("name"));
         user.setLogin(rs.getString("login"));
         user.setEmail(rs.getString("email"));
-        Date sqlDate = rs.getDate("birthdate");
+        Date sqlDate = rs.getDate("birthday");
         if (sqlDate != null) {
             user.setBirthday(sqlDate.toLocalDate());
         }

@@ -16,11 +16,11 @@ public class GenreService {
         this.genreDbStorage = genreDbStorage;
     }
 
-    public Genre findById(int id){
+    public Genre findById(long id) {
         return genreDbStorage.findById(id);
     }
 
-    public List<Genre> findAll(){
+    public List<Genre> findAll() {
         return genreDbStorage.findAll();
     }
 

@@ -3,10 +3,15 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.GenreService;
+import ru.yandex.practicum.filmorate.service.RatingService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @RestController
@@ -15,11 +20,21 @@ import java.util.List;
 public class FilmController {
     private final FilmService filmService;
     private final UserService userService;
+    private final RatingService ratingService;
+    private final GenreService genreService;
+    private final FilmMapper mapper;
 
     @Autowired
-    public FilmController(FilmService filmService, UserService userService) {
+    public FilmController(FilmService filmService,
+                          UserService userService,
+                          RatingService ratingService,
+                          GenreService genreService,
+                          FilmMapper filmMapper) {
         this.filmService = filmService;
         this.userService = userService;
+        this.ratingService = ratingService;
+        this.genreService = genreService;
+        this.mapper = filmMapper;
     }
 
     @GetMapping()
@@ -28,13 +43,34 @@ public class FilmController {
     }
 
     @GetMapping("/{filmId}")
-    public Film findById(@PathVariable long filmId) {
-        return filmService.get(filmId);
+    public FilmDto findById(@PathVariable long filmId) {
+        Film film = filmService.get(filmId);
+        /*FilmDto filmDto = new FilmDto();
+        filmDto.setId(film.getId());
+        filmDto.setName(film.getName());
+        filmDto.setDescription(film.getDescription());
+        filmDto.setReleaseDate(film.getReleaseDate());
+        filmDto.setDuration(film.getDuration());
+        Rating mpa = new Rating();
+        if (film.getRating() != null) {
+            mpa = ratingService.findById(film.getRating());
+        }
+        UniObject uo = new UniObject();
+        uo.setId(mpa.getId());
+        uo.setName(mpa.getName());
+        filmDto.setMpa(uo);
+        List<Genre> genres = filmService.getFilmGenres(film.getId());
+        filmDto.setGenres(new LinkedHashSet<>(genres));*/
+        FilmDto filmDto = mapper.toDto(film);
+        return filmDto;
     }
 
     @PostMapping()
-    public Film create(@RequestBody Film film) {
-        return filmService.create(film);
+    public FilmDto create(@RequestBody FilmDto filmDto) {
+        Film film = mapper.dtoToFilm(filmDto);
+        film = filmService.create(film);
+        FilmDto result = mapper.toDto(film);
+        return result;
     }
 
     @PutMapping()
@@ -56,5 +92,4 @@ public class FilmController {
     public List<Film> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count) {
         return filmService.getPopular(count);
     }
-
 }

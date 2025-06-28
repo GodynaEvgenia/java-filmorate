@@ -1,13 +1,24 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
 @Component
-public class UserDbStorage implements UserStorage{
+@Slf4j
+public class UserDbStorage implements UserStorage {
+    UserRepository userRepository;
+
+    @Autowired
+    public UserDbStorage(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
     @Override
     public Map<Long, User> findAll() {
         return Map.of();
@@ -15,22 +26,25 @@ public class UserDbStorage implements UserStorage{
 
     @Override
     public User get(long userId) {
-        return null;
+        return userRepository.findById(userId);
     }
 
     @Override
     public List<User> getAll() {
-        return List.of();
+        return userRepository.findAll();
     }
 
     @Override
     public User create(User user) {
-        return null;
+        user.validate();
+        userRepository.save(user);
+        return user;
     }
 
     @Override
     public User update(User user) {
-        return null;
+        User exUser = userRepository.findById(user.getId());
+        return userRepository.update(user);
     }
 
     @Override
@@ -40,21 +54,25 @@ public class UserDbStorage implements UserStorage{
 
     @Override
     public void addFriend(long userId, long friendId) {
-
+        User exFriend = userRepository.findById(friendId);
+        userRepository.addFriend(userId, friendId);
     }
 
     @Override
     public void deleteFriend(long userId, long friendId) {
-
+        User exUser = userRepository.findById(userId);
+        User exFriend = userRepository.findById(friendId);
+        userRepository.deleteFriend(userId, friendId);
     }
 
     @Override
-    public Set<User> getFriends(long userId) {
-        return Set.of();
+    public List<User> getFriends(long userId) {
+        User exUser = userRepository.findById(userId);
+        return userRepository.getFriends(userId);
     }
 
     @Override
-    public Set<User> getCommonFriends(long id, long otherId) {
-        return Set.of();
+    public List<User> getCommonFriends(long id, long otherId) {
+        return userRepository.getCommonFriends(id, otherId);
     }
 }
