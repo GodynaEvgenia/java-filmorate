@@ -9,9 +9,6 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.RatingService;
 import ru.yandex.practicum.filmorate.service.UserService;
-
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 @RestController
@@ -45,22 +42,6 @@ public class FilmController {
     @GetMapping("/{filmId}")
     public FilmDto findById(@PathVariable long filmId) {
         Film film = filmService.get(filmId);
-        /*FilmDto filmDto = new FilmDto();
-        filmDto.setId(film.getId());
-        filmDto.setName(film.getName());
-        filmDto.setDescription(film.getDescription());
-        filmDto.setReleaseDate(film.getReleaseDate());
-        filmDto.setDuration(film.getDuration());
-        Rating mpa = new Rating();
-        if (film.getRating() != null) {
-            mpa = ratingService.findById(film.getRating());
-        }
-        UniObject uo = new UniObject();
-        uo.setId(mpa.getId());
-        uo.setName(mpa.getName());
-        filmDto.setMpa(uo);
-        List<Genre> genres = filmService.getFilmGenres(film.getId());
-        filmDto.setGenres(new LinkedHashSet<>(genres));*/
         FilmDto filmDto = mapper.toDto(film);
         return filmDto;
     }
