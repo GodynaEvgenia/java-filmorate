@@ -1,28 +1,32 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
+import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.repository.GenreRepository;
+import ru.yandex.practicum.filmorate.repository.BaseRepository;
 
 import java.util.List;
 
 @Component
-public class GenreDbStorage {
-    GenreRepository genreRepository;
+@Repository
+public class GenreDbStorage extends BaseRepository<Genre> {
+    private static final String FIND_ALL_QUERY = "SELECT * FROM genre";
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM genre WHERE id = ?";
 
-    @Autowired
-    public GenreDbStorage(GenreRepository genreRepository) {
-        this.genreRepository = genreRepository;
+    public GenreDbStorage(JdbcTemplate jdbc, GenreRowMapper mapper) {
+        super(jdbc, mapper);
     }
 
     public Genre findById(long id) {
-        return genreRepository.findById(id)
+        return findOne(FIND_BY_ID_QUERY, id)
                 .orElseThrow(() -> new ResourceNotFoundException("Жанр не найден с ID: " + id));
     }
 
     public List<Genre> findAll() {
-        return genreRepository.findAll();
+        return findMany(FIND_ALL_QUERY);
     }
+
 }

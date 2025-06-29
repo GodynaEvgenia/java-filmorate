@@ -9,7 +9,7 @@ import java.util.List;
 
 @Service
 public class RatingService {
-    RatingDbStorage ratingDbStorage;
+    private RatingDbStorage ratingDbStorage;
 
     @Autowired
     public RatingService(RatingDbStorage genreDbStorage) {

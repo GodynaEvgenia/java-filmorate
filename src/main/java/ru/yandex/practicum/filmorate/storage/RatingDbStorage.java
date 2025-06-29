@@ -1,28 +1,31 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
+import ru.yandex.practicum.filmorate.mapper.RatingRowMapper;
 import ru.yandex.practicum.filmorate.model.Rating;
-import ru.yandex.practicum.filmorate.repository.RatingRepository;
+import ru.yandex.practicum.filmorate.repository.BaseRepository;
 
 import java.util.List;
 
 @Component
-public class RatingDbStorage {
-    RatingRepository ratingRepository;
+@Repository
+public class RatingDbStorage extends BaseRepository<Rating> {
+    private static final String FIND_ALL_QUERY = "SELECT * FROM rating";
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM rating WHERE id = ?";
 
-    @Autowired
-    public RatingDbStorage(RatingRepository ratingRepository) {
-        this.ratingRepository = ratingRepository;
-    }
-
-    public Rating findById(int id) {
-        return ratingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Рейтинг не найден с ID: " + id));
+    public RatingDbStorage(JdbcTemplate jdbc, RatingRowMapper mapper) {
+        super(jdbc, mapper);
     }
 
     public List<Rating> findAll() {
-        return ratingRepository.findAll();
+        return findMany(FIND_ALL_QUERY);
+    }
+
+    public Rating findById(int id) {
+        return findOne(FIND_BY_ID_QUERY, id)
+                .orElseThrow(() -> new ResourceNotFoundException("Рейтинг не найден с ID: " + id));
     }
 }

@@ -12,7 +12,7 @@ import java.util.Map;
 @Service
 @Slf4j
 public class UserService {
-    UserDbStorage userStorage;
+    private UserDbStorage userStorage;
 
     @Autowired
     public UserService(UserDbStorage userStorage) {

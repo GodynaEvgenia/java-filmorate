@@ -4,11 +4,14 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.RatingService;
 import ru.yandex.practicum.filmorate.service.UserService;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -70,7 +73,12 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count) {
-        return filmService.getPopular(count);
+    public List<FilmDto> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count) {
+        List<Film> films = filmService.getPopular(count);
+        List<FilmDto> listFilmDto = new ArrayList<>();
+        for (Film film : films) {
+            listFilmDto.add(mapper.toDto(film));
+        }
+        return listFilmDto;
     }
 }

@@ -11,8 +11,8 @@ import java.util.List;
 
 @Service
 public class FilmService {
-    FilmDbStorage filmStorage;
-    UserService userService;
+    private FilmDbStorage filmStorage;
+    private UserService userService;
 
     @Autowired
     public FilmService(FilmDbStorage filmStorage, UserService userService) {
