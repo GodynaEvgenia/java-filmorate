@@ -5,13 +5,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Data
+@RequiredArgsConstructor
 public class Film {
     private Long id;
     @NotBlank
@@ -22,15 +24,17 @@ public class Film {
     private LocalDate releaseDate;
     @Min(1)
     private int duration;
-    private Set<Long> likes;
+    private Set<Long> genres;
+    private Integer rating;
 
-    public Film(Long id, String name, String description, LocalDate releaseDate, int duration) {
+    public Film(Long id, String name, String description, LocalDate releaseDate, int duration, Integer rating) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
-        this.likes = new HashSet<>();
+        this.genres = new LinkedHashSet<>();
+        this.rating = rating;
     }
 
     public void validate() throws ValidationException {
@@ -49,6 +53,5 @@ public class Film {
         if (getDuration() < 0) {
             throw new ValidationException("Продолжительность фильма должна быть положительным числом");
         }
-
     }
 }

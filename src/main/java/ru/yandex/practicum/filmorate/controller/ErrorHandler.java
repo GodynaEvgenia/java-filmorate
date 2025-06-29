@@ -19,7 +19,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     public ResponseEntity<AppError> handleResourceNotFoundException(final ResourceNotFoundException e) {
-        log.error("Искомый объект не найдена {}", e.getMessage());
+        log.error("Искомый объект не найден {}", e.getMessage());
         return new ResponseEntity<>(new AppError(HttpStatus.NOT_FOUND.value(), e.getMessage()), HttpStatus.NOT_FOUND);
     }
 

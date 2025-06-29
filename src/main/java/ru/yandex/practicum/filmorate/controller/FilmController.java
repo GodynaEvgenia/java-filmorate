@@ -3,10 +3,15 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.GenreService;
+import ru.yandex.practicum.filmorate.service.RatingService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -15,11 +20,21 @@ import java.util.List;
 public class FilmController {
     private final FilmService filmService;
     private final UserService userService;
+    private final RatingService ratingService;
+    private final GenreService genreService;
+    private final FilmMapper mapper;
 
     @Autowired
-    public FilmController(FilmService filmService, UserService userService) {
+    public FilmController(FilmService filmService,
+                          UserService userService,
+                          RatingService ratingService,
+                          GenreService genreService,
+                          FilmMapper filmMapper) {
         this.filmService = filmService;
         this.userService = userService;
+        this.ratingService = ratingService;
+        this.genreService = genreService;
+        this.mapper = filmMapper;
     }
 
     @GetMapping()
@@ -28,13 +43,18 @@ public class FilmController {
     }
 
     @GetMapping("/{filmId}")
-    public Film findById(@PathVariable long filmId) {
-        return filmService.get(filmId);
+    public FilmDto findById(@PathVariable long filmId) {
+        Film film = filmService.get(filmId);
+        FilmDto filmDto = mapper.toDto(film);
+        return filmDto;
     }
 
     @PostMapping()
-    public Film create(@RequestBody Film film) {
-        return filmService.create(film);
+    public FilmDto create(@RequestBody FilmDto filmDto) {
+        Film film = mapper.dtoToFilm(filmDto);
+        film = filmService.create(film);
+        FilmDto result = mapper.toDto(film);
+        return result;
     }
 
     @PutMapping()
@@ -53,8 +73,12 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count) {
-        return filmService.getPopular(count);
+    public List<FilmDto> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count) {
+        List<Film> films = filmService.getPopular(count);
+        List<FilmDto> listFilmDto = new ArrayList<>();
+        for (Film film : films) {
+            listFilmDto.add(mapper.toDto(film));
+        }
+        return listFilmDto;
     }
-
 }

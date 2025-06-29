@@ -1,20 +1,21 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.UserDbStorage;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Service
+@Slf4j
 public class UserService {
-    UserStorage userStorage;
+    private UserDbStorage userStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(UserDbStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -46,11 +47,11 @@ public class UserService {
         userStorage.deleteFriend(userId, friendId);
     }
 
-    public Set<User> getFriends(long userId) {
+    public List<User> getFriends(long userId) {
         return userStorage.getFriends(userId);
     }
 
-    public Set<User> getCommonFriends(long id, long otherId) {
+    public List<User> getCommonFriends(long id, long otherId) {
         return userStorage.getCommonFriends(id, otherId);
     }
 }

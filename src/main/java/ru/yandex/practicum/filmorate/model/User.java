@@ -1,18 +1,20 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+@RequiredArgsConstructor
 @Data
 public class User {
     private Long id;
-    private String email;
-    private String login;
     private String name;
+    private String login;
+    private String email;
     private LocalDate birthday;
     private Set<Long> friends;
 

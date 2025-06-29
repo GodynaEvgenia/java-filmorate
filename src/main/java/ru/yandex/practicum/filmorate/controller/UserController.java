@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
@@ -52,12 +51,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends") //возвращаем список пользователей, являющихся его друзьями.
-    public Set<User> getFriends(@PathVariable long id) {
+    public List<User> getFriends(@PathVariable long id) {
         return userService.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}") //список друзей, общих с другим пользователем.
-    public Optional<Set<User>> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
+    public Optional<List<User>> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
         return Optional.of(userService.getCommonFriends(id, otherId));
     }
 
