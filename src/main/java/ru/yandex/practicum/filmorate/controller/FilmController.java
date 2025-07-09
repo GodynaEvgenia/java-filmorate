@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +12,6 @@ import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.RatingService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,11 +27,7 @@ public class FilmController {
     private final FilmMapper mapper;
 
     @Autowired
-    public FilmController(FilmService filmService,
-                          UserService userService,
-                          RatingService ratingService,
-                          GenreService genreService,
-                          FilmMapper filmMapper) {
+    public FilmController(FilmService filmService, UserService userService, RatingService ratingService, GenreService genreService, FilmMapper filmMapper) {
         this.filmService = filmService;
         this.userService = userService;
         this.ratingService = ratingService;
@@ -87,10 +81,7 @@ public class FilmController {
 //    }
 
     @GetMapping("/popular")
-    public List<FilmDto> getPopularFilms(
-            @RequestParam(value = "count", defaultValue = "10") int count,
-            @RequestParam(value = "genreId", required = false) Long genreId,
-            @RequestParam(value = "year", required = false) Integer year) {
+    public List<FilmDto> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count, @RequestParam(value = "genreId", required = false) Long genreId, @RequestParam(value = "year", required = false) Integer year) {
 
         if (count < 1) {
             throw new IllegalArgumentException("Count must be positive");
@@ -101,9 +92,7 @@ public class FilmController {
         }
 
         List<Film> films = filmService.getPopularFilmsWithFilters(count, genreId, year);
-        return films.stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
+        return films.stream().map(mapper::toDto).collect(Collectors.toList());
     }
 
 }
