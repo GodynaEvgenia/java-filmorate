@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -13,10 +15,12 @@ import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/films")
 @ControllerAdvice
+@Validated
 public class FilmController {
     private final FilmService filmService;
     private final UserService userService;
@@ -72,13 +76,34 @@ public class FilmController {
         filmService.deleteLike(id, userId);
     }
 
+//    @GetMapping("/popular")
+//    public List<FilmDto> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count) {
+//        List<Film> films = filmService.getPopular(count);
+//        List<FilmDto> listFilmDto = new ArrayList<>();
+//        for (Film film : films) {
+//            listFilmDto.add(mapper.toDto(film));
+//        }
+//        return listFilmDto;
+//    }
+
     @GetMapping("/popular")
-    public List<FilmDto> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count) {
-        List<Film> films = filmService.getPopular(count);
-        List<FilmDto> listFilmDto = new ArrayList<>();
-        for (Film film : films) {
-            listFilmDto.add(mapper.toDto(film));
+    public List<FilmDto> getPopularFilms(
+            @RequestParam(value = "count", defaultValue = "10") int count,
+            @RequestParam(value = "genreId", required = false) Long genreId,
+            @RequestParam(value = "year", required = false) Integer year) {
+
+        if (count < 1) {
+            throw new IllegalArgumentException("Count must be positive");
         }
-        return listFilmDto;
+        int maxCount = 100;
+        if (count > maxCount) {
+            count = maxCount;
+        }
+
+        List<Film> films = filmService.getPopularFilmsWithFilters(count, genreId, year);
+        return films.stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
+
 }

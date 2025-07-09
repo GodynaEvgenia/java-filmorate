@@ -49,6 +49,16 @@ public class FilmDbStorage implements FilmStorage {
             "JOIN genre g ON g.id = fg.genre_id " +
             "WHERE film_id = ?" +
             "ORDER BY id";
+    private static final String GET_POPULAR_WITH_FILTERS_QUERY = "" +
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count " +
+            "FROM films f " +
+            "LEFT JOIN likes l ON f.id = l.film_id " +
+            "LEFT JOIN film_genre fg ON f.id = fg.film_id " +
+            "WHERE (? IS NULL OR fg.genre_id = ?) " +
+            "AND (? IS NULL OR YEAR(f.release_date) = ?) " +
+            "GROUP BY f.id " +
+            "ORDER BY likes_count DESC " +
+            "LIMIT ?";
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbc,
@@ -182,5 +192,11 @@ public class FilmDbStorage implements FilmStorage {
         genre.setName(resultSet.getString("name"));
         genre.setDescription(resultSet.getString("description"));
         return genre;
+    }
+
+    public List<Film> getPopularFilmsWithFilters(int count, Long genreId, Integer year) {
+        return jdbc.query(GET_POPULAR_WITH_FILTERS_QUERY,
+                this::mapRowToFilm,
+                genreId, genreId, year, year, count);
     }
 }

@@ -51,5 +51,9 @@ public class FilmService {
     public List<Genre> getFilmGenres(long filmId) {
         return filmStorage.getFilmGenres(filmId);
     }
+
+    public List<Film> getPopularFilmsWithFilters(int count, long genreId, Integer year) {
+        return filmStorage.getPopularFilmsWithFilters(count, genreId, year);
+    }
 }
 
