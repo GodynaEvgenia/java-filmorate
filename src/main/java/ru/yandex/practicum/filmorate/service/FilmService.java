@@ -52,7 +52,7 @@ public class FilmService {
         return filmStorage.getFilmGenres(filmId);
     }
 
-    public List<Film> getPopularFilmsWithFilters(int count, long genreId, Integer year) {
+    public List<Film> getPopularFilmsWithFilters(int count, Long genreId, Integer year) {
         return filmStorage.getPopularFilmsWithFilters(count, genreId, year);
     }
 }

@@ -1,9 +1,14 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
@@ -12,6 +17,7 @@ import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.RatingService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +25,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/films")
 @ControllerAdvice
 @Validated
+@Slf4j
 public class FilmController {
     private final FilmService filmService;
     private final UserService userService;
@@ -81,17 +88,29 @@ public class FilmController {
 //    }
 
     @GetMapping("/popular")
-    public List<FilmDto> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count, @RequestParam(value = "genreId", required = false) Long genreId, @RequestParam(value = "year", required = false) Integer year) {
+    public List<FilmDto> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count,
 
-        if (count < 1) {
-            throw new IllegalArgumentException("Count must be positive");
-        }
-        int maxCount = 100;
-        if (count > maxCount) {
-            count = maxCount;
+                                         @RequestParam(value = "genreId", required = false) @Positive(message = "Genre ID must be positive") Long genreId,
+
+                                         @RequestParam(value = "year", required = false) @Min(value = 1900, message = "Year must be no earlier than 1900") @Max(value = 2100, message = "Year must be no later than 2100") Integer year) {
+        log.info("Request for popular films: count={}, genreId={}, year={}", count, genreId, year);
+
+        if (genreId != null) {
+            try {
+                genreService.findById(genreId);
+            } catch (ResourceNotFoundException e) {
+                throw new ResourceNotFoundException("Жанр с id " + genreId + " не найден");
+            }
         }
 
-        List<Film> films = filmService.getPopularFilmsWithFilters(count, genreId, year);
+        List<Film> films;
+
+        if (genreId == null && year == null) {
+            films = filmService.getPopular(count);
+        } else {
+            films = filmService.getPopularFilmsWithFilters(count, genreId, year);
+        }
+
         return films.stream().map(mapper::toDto).collect(Collectors.toList());
     }
 

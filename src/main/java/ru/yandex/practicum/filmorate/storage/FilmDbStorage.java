@@ -8,6 +8,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -35,7 +36,16 @@ public class FilmDbStorage implements FilmStorage {
     private static final String INSERT_GENRY_QUERY = "INSERT INTO film_genre(film_id, genre_id) VALUES (?, ?)";
     private static final String GET_POPULAR_QUERY = "" + "SELECT films.id, name, description, release_date, duration, rating, COUNT(likes.id) AS likes_count " + "FROM films " + "JOIN likes ON films.id = likes.film_id " + "GROUP BY films.name " + "ORDER BY likes_count DESC " + "LIMIT ?";
     private static final String GET_FILM_GENRES_QUERY = "" + "SELECT g.id, g.name, g.description " + "FROM film_genre fg " + "JOIN genre g ON g.id = fg.genre_id " + "WHERE film_id = ?" + "ORDER BY id";
-    private static final String GET_POPULAR_WITH_FILTERS_QUERY = "" + "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count " + "FROM films f " + "LEFT JOIN likes l ON f.id = l.film_id " + "LEFT JOIN film_genre fg ON f.id = fg.film_id " + "WHERE (? IS NULL OR fg.genre_id = ?) " + "AND (? IS NULL OR YEAR(f.release_date) = ?) " + "GROUP BY f.id " + "ORDER BY likes_count DESC " + "LIMIT ?";
+    private static final String GET_POPULAR_WITH_FILTERS_QUERY = """
+            SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count 
+            FROM films f 
+            LEFT JOIN likes l ON f.id = l.film_id 
+            LEFT JOIN film_genre fg ON f.id = fg.film_id 
+            WHERE (? IS NULL OR fg.genre_id = ?) 
+            AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) 
+            GROUP BY f.id 
+            ORDER BY likes_count DESC 
+            LIMIT ?""";
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbc, RatingDbStorage ratingDbStorage, GenreDbStorage genreDbStorage, LikesRepository likesRepository) {
