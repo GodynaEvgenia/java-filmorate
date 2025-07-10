@@ -122,12 +122,6 @@ public class FilmDbStorage implements FilmStorage {
         return film;
     }
 
-    /*public void createFilmGenre(long filmId, long genreId) {
-        jdbc.update(INSERT_GENRY_QUERY,
-                filmId,
-                genreId);
-    }*/
-
     @Override
     public Film update(Film film) {
         Film exFilm = get(film.getId());
