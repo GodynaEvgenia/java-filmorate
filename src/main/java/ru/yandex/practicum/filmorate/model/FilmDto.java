@@ -21,6 +21,7 @@ public class FilmDto {
     private int duration;
     private Set<Genre> genres;
     private UniObject mpa;
+    private Set<Director> directors;
 
     public FilmDto(Long id, String name, String description, LocalDate releaseDate, int duration, UniObject mpa) {
         this.id = id;
@@ -30,5 +31,6 @@ public class FilmDto {
         this.duration = duration;
         this.genres = new LinkedHashSet<>();
         this.mpa = mpa;
+        this.directors = new LinkedHashSet<>();
     }
 }

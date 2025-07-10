@@ -43,6 +43,9 @@ public class FilmMapper {
         List<Genre> genres = filmService.getFilmGenres(film.getId());
         dto.setGenres(new LinkedHashSet<>(genres));
 
+       List<Director> directors = filmService.getFilmDirectors(film.getId());
+        dto.setDirectors(new LinkedHashSet<>(directors));
+
         return dto;
     }
 
@@ -52,12 +55,20 @@ public class FilmMapper {
         film.setDescription(filmDto.getDescription());
         film.setReleaseDate(filmDto.getReleaseDate());
         film.setDuration(filmDto.getDuration());
-        film.setRating(filmDto.getMpa().getId());
+        if (filmDto.getMpa() != null){
+            film.setRating(filmDto.getMpa().getId());
+        }
 
         film.setGenres(new LinkedHashSet<>());
         if (filmDto.getGenres() != null) {
             for (Genre genre : filmDto.getGenres()) {
                 film.getGenres().add(genre.getId());
+            }
+        }
+        film.setDirectors(new LinkedHashSet<>());
+        if (filmDto.getDirectors() != null) {
+            for (Director director : filmDto.getDirectors()) {
+                film.getDirectors().add(director.getId());
             }
         }
         return film;

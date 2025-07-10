@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
@@ -50,6 +51,14 @@ public class FilmService {
 
     public List<Genre> getFilmGenres(long filmId) {
         return filmStorage.getFilmGenres(filmId);
+    }
+
+    public List<Director> getFilmDirectors(long filmId) {
+        return filmStorage.getFilmDirectors(filmId);
+    }
+
+    public List<Film> getFilmsByDirectorSortBy(long directorId, String val) {
+        return filmStorage.getFilmsByDirectorSortBy(directorId, val);
     }
 }
 

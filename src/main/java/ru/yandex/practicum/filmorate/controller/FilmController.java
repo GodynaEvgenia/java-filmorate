@@ -81,4 +81,17 @@ public class FilmController {
         }
         return listFilmDto;
     }
+    //sortBy=[year,likes]
+    @GetMapping("/director/{directorId}")
+    public List<FilmDto> getFilmsByDirectorSortBy(@PathVariable long directorId,
+                                                  @RequestParam(value = "sortBy") String val) {
+        List<Film> films = filmService.getFilmsByDirectorSortBy(directorId, val);
+        List<FilmDto> listFilmDto = new ArrayList<>();
+        for (Film film : films) {
+            listFilmDto.add(mapper.toDto(film));
+        }
+        return listFilmDto;
+
+    }
+
 }

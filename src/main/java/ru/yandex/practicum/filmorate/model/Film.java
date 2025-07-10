@@ -26,6 +26,7 @@ public class Film {
     private int duration;
     private Set<Long> genres;
     private Integer rating;
+    private Set<Long> directors;
 
     public Film(Long id, String name, String description, LocalDate releaseDate, int duration, Integer rating) {
         this.id = id;
@@ -35,6 +36,7 @@ public class Film {
         this.duration = duration;
         this.genres = new LinkedHashSet<>();
         this.rating = rating;
+        this.directors = new LinkedHashSet<>();
     }
 
     public void validate() throws ValidationException {

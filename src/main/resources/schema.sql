@@ -10,6 +10,11 @@
       description VARCHAR(255)
   );
 
+  CREATE TABLE IF NOT EXISTS directors(
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(200) NOT NULL
+    );
+
   CREATE TABLE IF NOT EXISTS films (
       id INT AUTO_INCREMENT PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
@@ -45,3 +50,9 @@
       film_id INT NOT NULL REFERENCES films,
       genre_id INT NOT NULL REFERENCES genre
   );
+
+  CREATE TABLE IF NOT EXISTS film_director(
+       id INT AUTO_INCREMENT PRIMARY KEY,
+       film_id INT NOT NULL REFERENCES films,
+       director_id INT NOT NULL REFERENCES directors
+   );
