@@ -2,22 +2,30 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmDto;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
     private FilmDbStorage filmStorage;
     private UserService userService;
+    private final FilmMapper filmMapper;
+    private final GenreService genreService;
 
     @Autowired
-    public FilmService(FilmDbStorage filmStorage, UserService userService) {
+    public FilmService(FilmDbStorage filmStorage, UserService userService, FilmMapper filmMapper, GenreService genreService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
+        this.filmMapper = filmMapper;
+        this.genreService = genreService;
     }
 
     public Film get(long filmId) {
@@ -50,6 +58,33 @@ public class FilmService {
 
     public List<Genre> getFilmGenres(long filmId) {
         return filmStorage.getFilmGenres(filmId);
+    }
+
+    public List<FilmDto> getPopularFilms(int count, Long genreId, Integer year) {
+        if (genreId != null) {
+            try {
+                genreService.findById(genreId);
+            } catch (ResourceNotFoundException e) {
+                throw new ResourceNotFoundException("Жанр с id " + genreId + " не найден");
+            }
+        }
+
+        List<Film> films;
+
+        if (genreId == null && year == null) {
+            films = getPopular(count);
+        } else {
+            films = filmStorage.getPopularFilmsWithFilters(count, genreId, year);
+        }
+
+        return films.stream().map(film -> {
+            List<Genre> genres = getFilmGenres(film.getId());
+            return filmMapper.toDto(film, genres);
+        }).collect(Collectors.toList());
+    }
+
+    public List<Film> getPopularFilmsWithFilters(int count, Long genreId, Integer year) {
+        return filmStorage.getPopularFilmsWithFilters(count, genreId, year);
     }
 }
 
