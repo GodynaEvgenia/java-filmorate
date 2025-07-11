@@ -14,18 +14,14 @@ import java.util.List;
 public class FilmMapper {
     private final RatingService ratingService;
     private final GenreService genreService;
-    private final FilmService filmService;
 
     @Autowired
-    public FilmMapper(RatingService ratingService,
-                      GenreService genreService,
-                      FilmService filmService) {
+    public FilmMapper(RatingService ratingService, GenreService genreService) {
         this.ratingService = ratingService;
         this.genreService = genreService;
-        this.filmService = filmService;
     }
 
-    public FilmDto toDto(Film film) {
+    public FilmDto toDto(Film film, List<Genre> genres) {
         FilmDto dto = new FilmDto();
         dto.setId(film.getId());
         dto.setName(film.getName());
@@ -40,7 +36,6 @@ public class FilmMapper {
         uo.setId(mpa.getId());
         uo.setName(mpa.getName());
         dto.setMpa(uo);
-        List<Genre> genres = filmService.getFilmGenres(film.getId());
         dto.setGenres(new LinkedHashSet<>(genres));
 
         return dto;
