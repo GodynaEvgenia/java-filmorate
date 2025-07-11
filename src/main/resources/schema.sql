@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS film_director;
 DROP TABLE IF EXISTS films;
 DROP TABLE IF EXISTS rating;
 DROP TABLE IF EXISTS friendship;
+DROP TABLE IF EXISTS feed;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS directors;
 
@@ -81,6 +82,16 @@ CREATE TABLE review_ratings
     user_id     INT     NOT NULL REFERENCES users,
     is_positive boolean NOT NULL,
     PRIMARY KEY (user_id, review_id)
+);
+
+CREATE TABLE feed
+(
+    event_id   INT AUTO_INCREMENT PRIMARY KEY,
+    user_id    INT         NOT NULL REFERENCES users,
+    timestamp  LONG        NOT NULL,
+    event_type VARCHAR(10) NOT NULL,
+    operation  VARCHAR(10) NOT NULL,
+    entity_id  INT         NOT NULL
 );
 
   CREATE TABLE film_director(

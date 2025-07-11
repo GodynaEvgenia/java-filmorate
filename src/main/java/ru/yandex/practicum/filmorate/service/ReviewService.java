@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.EventOperation;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.ReviewDbStorage;
@@ -21,15 +23,17 @@ public class ReviewService {
     private ReviewRatingDbStorage reviewRatingDbStorage;
     private UserService userService;
     private FilmService filmService;
+    private FeedService feedService;
 
 
     @Autowired
     public ReviewService(ReviewDbStorage reviewDbStorage, ReviewRatingDbStorage reviewRatingDbStorage,
-                         UserService userService, FilmService filmService) {
+                         UserService userService, FilmService filmService, FeedService feedService) {
         this.reviewDbStorage = reviewDbStorage;
         this.reviewRatingDbStorage = reviewRatingDbStorage;
         this.userService = userService;
         this.filmService = filmService;
+        this.feedService = feedService;
     }
 
     public Review getById(Integer id) {
@@ -60,6 +64,7 @@ public class ReviewService {
         log.debug("Добавление нового отзыва: {}", filmReview);
         performChecks(filmReview);
         Review review = reviewDbStorage.add(filmReview);
+        feedService.createFeed(review.getUserId(), EventType.REVIEW, EventOperation.ADD, review.getReviewId());
         log.debug("Добавлен отзыв с id = {}", review.getReviewId());
         log.trace("Итоговый отзыв: {}", review);
         return review;
@@ -69,6 +74,7 @@ public class ReviewService {
         log.debug("Обновление отзыва: {}", filmReview);
         performChecks(filmReview);
         Review review = reviewDbStorage.update(filmReview);
+        feedService.createFeed(review.getUserId(), EventType.REVIEW, EventOperation.UPDATE, review.getReviewId());
         log.debug("Отзыв обновлён");
         log.trace("Итоговый отзыв: {}", review);
         return review;
@@ -78,6 +84,7 @@ public class ReviewService {
         log.debug("Удаление отзыва с id = {}", id);
         Review review = checkIfReviewExists(id);
         reviewDbStorage.delete(id);
+        feedService.createFeed(review.getUserId(), EventType.REVIEW, EventOperation.REMOVE, review.getReviewId());
         log.debug("Удалён отзыв с id = {}", id);
     }
 
