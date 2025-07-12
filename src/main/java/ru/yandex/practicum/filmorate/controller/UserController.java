@@ -60,4 +60,8 @@ public class UserController {
         return Optional.of(userService.getCommonFriends(id, otherId));
     }
 
+    @DeleteMapping("/{userId}")
+    public boolean deleteUserById(@PathVariable Long userId) {
+        return userService.deleteUserById(userId);
+    }
 }
