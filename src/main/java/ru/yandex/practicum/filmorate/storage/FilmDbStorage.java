@@ -156,6 +156,12 @@ public class FilmDbStorage implements FilmStorage {
         return genre;
     }
 
+    @Override
+    public boolean deleteFilmById(Long film_id) {
+        String sql = "DELETE FROM films WHERE id = ?";
+        return jdbc.update(sql, film_id) > 0;
+    }
+
     public List<Film> getPopularFilmsWithFilters(int count, Long genreId, Integer year) {
         return jdbc.query(GET_POPULAR_WITH_FILTERS_QUERY, this::mapRowToFilm, genreId, genreId, year, year, count);
     }
