@@ -81,4 +81,9 @@ public class FilmController {
         }
         return listFilmDto;
     }
+
+    @DeleteMapping("/{id}")
+    public boolean deleteFilmById(@PathVariable Long id) {
+        return filmService.deleteFilmById(id);
+    }
 }

@@ -183,4 +183,16 @@ public class FilmDbStorage implements FilmStorage {
         genre.setDescription(resultSet.getString("description"));
         return genre;
     }
+
+    @Override
+    public boolean deleteFilmById(Long film_id) {
+     //   Film exFilm = get(film_id);
+        //Film film = get(film_id);
+
+       //jdbc.update("DELETE FROM film_genre WHERE id = ?", film_id);
+       // jdbc.update("DELETE FROM likes WHERE id = ?", film_id);
+       //  jdbc.update("DELETE FROM rating WHERE id = ?", get(film_id).getRating());
+        String sql = "DELETE FROM films WHERE id = ?";
+        return jdbc.update(sql, film_id) > 0;
+    }
 }

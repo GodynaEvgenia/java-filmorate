@@ -51,5 +51,10 @@ public class FilmService {
     public List<Genre> getFilmGenres(long filmId) {
         return filmStorage.getFilmGenres(filmId);
     }
+
+    public boolean deleteFilmById(Long id) {
+        if (id == null || id < 1) throw new IllegalArgumentException("Фильм с id = " + id + " не найден");
+        return filmStorage.deleteFilmById(id);
+    }
 }
 
