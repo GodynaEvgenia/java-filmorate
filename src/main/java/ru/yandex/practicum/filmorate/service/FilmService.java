@@ -3,22 +3,27 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmDto;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class FilmService {
     private FilmDbStorage filmStorage;
     private UserService userService;
+    //private FilmMapper mapper = new FilmMapper();
 
     @Autowired
     public FilmService(FilmDbStorage filmStorage, UserService userService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
+
     }
 
     public Film get(long filmId) {
@@ -57,8 +62,14 @@ public class FilmService {
         return filmStorage.getFilmDirectors(filmId);
     }
 
-    public List<Film> getFilmsByDirectorSortBy(long directorId, String val) {
-        return filmStorage.getFilmsByDirectorSortBy(directorId, val);
+    public List<Film> getFilmsByDirectorSortBy(long directorId, String sortBy) {
+        return filmStorage.getFilmsByDirectorSortBy(directorId, sortBy);
+        /*List<FilmDto> listFilmDto = new ArrayList<>();
+
+        for (Film film : films) {
+            listFilmDto.add(mapper.toDto(film));
+        }
+        return listFilmDto;*/
     }
 }
 

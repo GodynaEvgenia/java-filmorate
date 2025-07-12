@@ -26,7 +26,7 @@ public class Film {
     private int duration;
     private Set<Long> genres;
     private Integer rating;
-    private Set<Long> directors;
+    private Set<Director> directors;
 
     public Film(Long id, String name, String description, LocalDate releaseDate, int duration, Integer rating) {
         this.id = id;

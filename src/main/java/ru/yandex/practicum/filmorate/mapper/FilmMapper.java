@@ -43,7 +43,7 @@ public class FilmMapper {
         List<Genre> genres = filmService.getFilmGenres(film.getId());
         dto.setGenres(new LinkedHashSet<>(genres));
 
-       List<Director> directors = filmService.getFilmDirectors(film.getId());
+        List<Director> directors = filmService.getFilmDirectors(film.getId());
         dto.setDirectors(new LinkedHashSet<>(directors));
 
         return dto;
@@ -51,6 +51,10 @@ public class FilmMapper {
 
     public Film dtoToFilm(FilmDto filmDto) {
         Film film = new Film();
+        if (filmDto.getId() != null){
+            film.setId(filmDto.getId());
+        }
+
         film.setName(filmDto.getName());
         film.setDescription(filmDto.getDescription());
         film.setReleaseDate(filmDto.getReleaseDate());
@@ -68,7 +72,7 @@ public class FilmMapper {
         film.setDirectors(new LinkedHashSet<>());
         if (filmDto.getDirectors() != null) {
             for (Director director : filmDto.getDirectors()) {
-                film.getDirectors().add(director.getId());
+                film.getDirectors().add(director);
             }
         }
         return film;

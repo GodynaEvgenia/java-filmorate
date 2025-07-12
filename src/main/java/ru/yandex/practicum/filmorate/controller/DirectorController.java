@@ -31,9 +31,7 @@ public class DirectorController {
 
     @PostMapping()
     public Director create(@RequestBody Director director) {
-        //Director dire = mapper.dtoToFilm(filmDto);
         director = directorService.create(director);
-        //Director result = mapper.toDto(film);
         return director;
     }
 

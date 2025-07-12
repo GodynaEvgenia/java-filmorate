@@ -61,15 +61,22 @@ public class FilmDbStorage implements FilmStorage {
             " (?, ?)";
     private static final String DELETE_FILM_DIRECTORS_QUERY = "DELETE FROM film_director WHERE film_id = ?";
     private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY = "" +
-            "SELECT films.id, name, description, release_date, duration, rating " +
-            "FROM films " +
-            "JOIN film_director fd ON films.id = fd.film_id " +
-            "WHERE fd.director_id = ?";
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, rating," +
+            "COUNT(l.id) AS likes_count, d.name " +
+            "FROM films f " +
+            "JOIN film_director fd ON f.id = fd.film_id " +
+            "LEFT JOIN likes l ON f.id = l.film_id " +
+            "JOIN directors d on d.id = fd.director_id " +
+            "WHERE fd.director_id = ? " +
+            "GROUP BY f.id " +
+            "ORDER BY likes_count DESC ";
     private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR_QUERY = "" +
-            "SELECT films.id, name, description, release_date, duration, rating " +
-            "FROM films " +
-            "JOIN film_director fd ON films.id = fd.film_id " +
-            "WHERE fd.director_id = ?";
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, d.name " +
+            "FROM films f " +
+            "JOIN film_director fd ON f.id = fd.film_id " +
+            "JOIN directors d on d.id = fd.director_id " +
+            "WHERE fd.director_id = ? " +
+            "ORDER BY YEAR(f.release_date)";
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbc,
@@ -152,9 +159,9 @@ public class FilmDbStorage implements FilmStorage {
 
         if (film.getDirectors() != null){
             List<Object[]> batchArgs = new ArrayList<>();
-            for (long directorId : film.getDirectors()) {
-                Director director = directorDBStorage.findById(directorId);
-                batchArgs.add(new Object[]{film.getId(), directorId});
+            for (Director d : film.getDirectors()) {
+                Director director = directorDBStorage.findById(d.getId());
+                batchArgs.add(new Object[]{film.getId(), d.getId()});
             }
             int[] updateCounts = jdbc.batchUpdate(INSERT_FILM_DIRECTOR_QUERY, batchArgs);
         }
@@ -176,9 +183,9 @@ public class FilmDbStorage implements FilmStorage {
 
             jdbc.update(DELETE_FILM_DIRECTORS_QUERY, film.getId());
             List<Object[]> batchArgs = new ArrayList<>();
-            for (long directorId : film.getDirectors()) {
-                Director director = directorDBStorage.findById(directorId);
-                batchArgs.add(new Object[]{film.getId(), directorId});
+            for (Director d : film.getDirectors()) {
+                Director director = directorDBStorage.findById(d.getId());
+                batchArgs.add(new Object[]{film.getId(), d.getId()});
             }
             int[] updateCounts = jdbc.batchUpdate(INSERT_FILM_DIRECTOR_QUERY, batchArgs);
         }
@@ -229,11 +236,11 @@ public class FilmDbStorage implements FilmStorage {
         return director;
     }
 
-    public List<Film> getFilmsByDirectorSortBy(long directorId, String val) {
-        if (val.equals("year")) {
-            return jdbc.query(GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY, this::mapRowToFilm, directorId);
-        } else {
+    public List<Film> getFilmsByDirectorSortBy(long directorId, String sortBy) {
+        if (sortBy.equals("year")) {
             return jdbc.query(GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR_QUERY, this::mapRowToFilm, directorId);
+        } else {
+            return jdbc.query(GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY, this::mapRowToFilm, directorId);
         }
 
     }

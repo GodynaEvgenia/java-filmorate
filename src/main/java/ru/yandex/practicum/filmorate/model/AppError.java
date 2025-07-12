@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.model;
 public class AppError {
     private int statusCode;
     private String message;
+    private String error;
 
     public int getStatusCode() {
         return statusCode;
@@ -23,8 +24,9 @@ public class AppError {
     public AppError() {
     }
 
-    public AppError(int statusCode, String message) {
+    public AppError(int statusCode, String message, String error) {
         this.statusCode = statusCode;
         this.message = message;
+        this.error = error;
     }
 }
