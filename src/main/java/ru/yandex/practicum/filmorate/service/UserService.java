@@ -54,4 +54,9 @@ public class UserService {
     public List<User> getCommonFriends(long id, long otherId) {
         return userStorage.getCommonFriends(id, otherId);
     }
+
+    public boolean deleteUserById(Long userId) {
+        if (userId == null || userId < 1) throw new IllegalArgumentException("Invalid User id");
+        return userStorage.deleteUserById(userId);
+    }
 }

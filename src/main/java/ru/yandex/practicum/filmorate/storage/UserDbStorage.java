@@ -129,4 +129,18 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     public List<User> getCommonFriends(long userId, long userId2) {
         return jdbc.query(GET_COMMON_FRIENDS_QUERY, this::mapRowToUser, userId, userId2);
     }
+
+    @Override
+    public boolean deleteUserById(Long userId) {
+        User exUser = get(userId);
+        List<User> friends = jdbc.query(GET_FRIENDS_QUERY, this::mapRowToUser, userId);
+
+        // Теперь удаляем каждого друга из базы данных
+        for (User friend : friends) {
+            deleteFriend(userId, friend.getId());
+        }
+        String sql = "DELETE FROM users WHERE id = ?";
+
+        return jdbc.update(sql, userId) > 0;
+    }
 }

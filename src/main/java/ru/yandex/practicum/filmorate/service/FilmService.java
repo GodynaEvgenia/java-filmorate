@@ -86,5 +86,10 @@ public class FilmService {
     public List<Film> getPopularFilmsWithFilters(int count, Long genreId, Integer year) {
         return filmStorage.getPopularFilmsWithFilters(count, genreId, year);
     }
+
+    public boolean deleteFilmById(Long id) {
+        if (id == null || id < 1) throw new IllegalArgumentException("Фильм с id = " + id + " не найден");
+        return filmStorage.deleteFilmById(id);
+    }
 }
 

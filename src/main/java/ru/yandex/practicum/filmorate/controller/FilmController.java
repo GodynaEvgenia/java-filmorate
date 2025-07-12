@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.RatingService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -82,5 +83,11 @@ public class FilmController {
         log.info("Request for popular films: count={}, genreId={}, year={}", count, genreId, year);
         return filmService.getPopularFilms(count, genreId, year);
     }
+
+    @DeleteMapping("/{id}")
+    public boolean deleteFilmById(@PathVariable Long id) {
+        return filmService.deleteFilmById(id);
+    }
+}
 
 }
