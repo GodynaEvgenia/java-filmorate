@@ -38,7 +38,7 @@ public class FilmDbStorage implements FilmStorage {
     private static final String GET_POPULAR_WITH_FILTERS_QUERY = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count FROM films f LEFT JOIN likes l ON f.id = l.film_id LEFT JOIN film_genre fg ON f.id = fg.film_id WHERE (? IS NULL OR fg.genre_id = ?) AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) GROUP BY f.id ORDER BY likes_count DESC LIMIT ?";
     private static final String GET_COMMON_FILMS_QUERY = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count " + "FROM films f " + "JOIN likes l ON f.id = l.film_id " + "WHERE f.id IN ( " + "   SELECT film_id FROM likes WHERE user_id = ? " + "   INTERSECT " + "   SELECT film_id FROM likes WHERE user_id = ? " + ") " + "GROUP BY f.id " + "ORDER BY likes_count DESC";
     private static final String GET_GENRES_FOR_FILMS_QUERY = """
-            SELECT fg.film_id, g.id, g.name, g.description 
+            SELECT fg.film_id, g.id, g.name, g.description
             FROM film_genre fg
             JOIN genre g ON fg.genre_id = g.id
             WHERE fg.film_id IN (%s)
