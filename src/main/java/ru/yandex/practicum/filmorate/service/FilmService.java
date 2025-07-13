@@ -86,5 +86,19 @@ public class FilmService {
     public List<Film> getPopularFilmsWithFilters(int count, Long genreId, Integer year) {
         return filmStorage.getPopularFilmsWithFilters(count, genreId, year);
     }
+
+    public List<FilmDto> getCommonFilms(long userId, long friendId) {
+        // Проверяем, что пользователи существуют (если нужно)
+        userService.get(userId);
+        userService.get(friendId);
+
+        List<Film> films = filmStorage.getCommonFilms(userId, friendId);
+
+        return films.stream().map(film -> {
+            List<Genre> genres = getFilmGenres(film.getId());
+            return filmMapper.toDto(film, genres);
+        }).collect(Collectors.toList());
+    }
+
 }
 
