@@ -15,9 +15,9 @@ import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.repository.LikesRepository;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.sql.Date;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -37,6 +37,13 @@ public class FilmDbStorage implements FilmStorage {
     private static final String GET_FILM_GENRES_QUERY = "" + "SELECT g.id, g.name, g.description " + "FROM film_genre fg " + "JOIN genre g ON g.id = fg.genre_id " + "WHERE film_id = ?" + "ORDER BY id";
     private static final String GET_POPULAR_WITH_FILTERS_QUERY = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count FROM films f LEFT JOIN likes l ON f.id = l.film_id LEFT JOIN film_genre fg ON f.id = fg.film_id WHERE (? IS NULL OR fg.genre_id = ?) AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) GROUP BY f.id ORDER BY likes_count DESC LIMIT ?";
     private static final String GET_COMMON_FILMS_QUERY = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count " + "FROM films f " + "JOIN likes l ON f.id = l.film_id " + "WHERE f.id IN ( " + "   SELECT film_id FROM likes WHERE user_id = ? " + "   INTERSECT " + "   SELECT film_id FROM likes WHERE user_id = ? " + ") " + "GROUP BY f.id " + "ORDER BY likes_count DESC";
+    private static final String GET_GENRES_FOR_FILMS_QUERY = """
+            SELECT fg.film_id, g.id, g.name, g.description 
+            FROM film_genre fg
+            JOIN genre g ON fg.genre_id = g.id
+            WHERE fg.film_id IN (%s)
+            ORDER BY fg.film_id, g.id
+            """;
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbc, RatingDbStorage ratingDbStorage, GenreDbStorage genreDbStorage, LikesRepository likesRepository) {
@@ -163,5 +170,34 @@ public class FilmDbStorage implements FilmStorage {
 
     public List<Film> getCommonFilms(Long userId, Long friendId) {
         return jdbc.query(GET_COMMON_FILMS_QUERY, this::mapRowToFilm, userId, friendId);
+    }
+
+    private Genre mapToGenre(ResultSet rs) throws SQLException {
+        Genre genre = new Genre();
+        genre.setId(rs.getLong("id"));
+        genre.setName(rs.getString("name"));
+        genre.setDescription(rs.getString("description"));
+        return genre;
+    }
+
+    @Override
+    public Map<Long, List<Genre>> getGenresForFilms(List<Long> filmIds) {
+        if (filmIds.isEmpty()) {
+            return Map.of();
+        }
+
+        String inClause = filmIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+
+        String sql = String.format(GET_GENRES_FOR_FILMS_QUERY, inClause);
+
+        return jdbc.query(sql, rs -> {
+            Map<Long, List<Genre>> result = new HashMap<>();
+            while (rs.next()) {
+                Long filmId = rs.getLong("film_id");
+                Genre genre = mapToGenre(rs); // Используем новый метод
+                result.computeIfAbsent(filmId, k -> new ArrayList<>()).add(genre);
+            }
+            return result;
+        });
     }
 }
