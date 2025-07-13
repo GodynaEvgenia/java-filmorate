@@ -88,7 +88,7 @@ public class FilmService {
     }
 
     public List<FilmDto> getCommonFilms(long userId, long friendId) {
-        // Проверяем, что пользователи существуют (если нужно)
+
         userService.get(userId);
         userService.get(friendId);
 
