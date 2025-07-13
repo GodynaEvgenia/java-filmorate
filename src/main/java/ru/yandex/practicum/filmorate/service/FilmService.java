@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -86,5 +87,26 @@ public class FilmService {
     public List<Film> getPopularFilmsWithFilters(int count, Long genreId, Integer year) {
         return filmStorage.getPopularFilmsWithFilters(count, genreId, year);
     }
+
+    public List<FilmDto> getCommonFilms(long userId, long friendId) {
+        userService.get(userId);
+        userService.get(friendId);
+
+        List<Film> films = filmStorage.getCommonFilms(userId, friendId);
+
+        if (films.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
+
+        Map<Long, List<Genre>> genresByFilmId = filmStorage.getGenresForFilms(filmIds);
+
+        return films.stream().map(film -> {
+            List<Genre> genres = genresByFilmId.getOrDefault(film.getId(), List.of());
+            return filmMapper.toDto(film, genres);
+        }).collect(Collectors.toList());
+    }
+
 }
 
