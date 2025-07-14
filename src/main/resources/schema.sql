@@ -6,11 +6,15 @@ DROP TABLE IF EXISTS GENRE;
 
 DROP TABLE IF EXISTS LIKES;
 
+DROP TABLE IF EXISTS FILM_DIRECTOR;
+
 DROP TABLE IF EXISTS FILMS;
 
 DROP TABLE IF EXISTS RATING;
 
 DROP TABLE IF EXISTS USERS;
+
+DROP TABLE IF EXISTS DIRECTORS;
 
 CREATE TABLE genre
 (
@@ -35,19 +39,10 @@ CREATE TABLE films
     duration     INT,
     rating       INT REFERENCES rating
 );
-  CREATE TABLE IF NOT EXISTS directors(
+  CREATE TABLE directors(
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(200) NOT NULL
     );
-
-  CREATE TABLE IF NOT EXISTS films (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      description VARCHAR(255),
-      release_date DATE,
-      duration INT,
-      rating INT REFERENCES rating
-  );
 
 CREATE TABLE users
 (
@@ -79,11 +74,6 @@ CREATE TABLE film_genre
     film_id  INT NOT NULL REFERENCES films,
     genre_id INT NOT NULL REFERENCES genre
 );
-  CREATE TABLE IF NOT EXISTS film_genre(
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      film_id INT NOT NULL REFERENCES films,
-      genre_id INT NOT NULL REFERENCES genre
-  );
 
   CREATE TABLE IF NOT EXISTS film_director(
        id INT AUTO_INCREMENT PRIMARY KEY,

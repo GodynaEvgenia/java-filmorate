@@ -64,12 +64,6 @@ public class FilmService {
 
     public List<Film> getFilmsByDirectorSortBy(long directorId, String sortBy) {
         return filmStorage.getFilmsByDirectorSortBy(directorId, sortBy);
-        /*List<FilmDto> listFilmDto = new ArrayList<>();
-
-        for (Film film : films) {
-            listFilmDto.add(mapper.toDto(film));
-        }
-        return listFilmDto;*/
     }
 }
 
