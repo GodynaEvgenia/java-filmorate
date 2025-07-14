@@ -106,6 +106,8 @@ public class FilmService {
             List<Genre> genres = genresByFilmId.getOrDefault(film.getId(), List.of());
             return filmMapper.toDto(film, genres);
         }).collect(Collectors.toList());
+    public List<Film> getFilmsByDirectorSortBy(long directorId, String sortBy) {
+        return filmStorage.getFilmsByDirectorSortBy(directorId, sortBy);
     }
 
 }

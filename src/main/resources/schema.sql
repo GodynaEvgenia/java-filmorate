@@ -3,10 +3,12 @@ DROP TABLE IF EXISTS genre;
 DROP TABLE IF EXISTS likes;
 DROP TABLE IF EXISTS review_ratings;
 DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS film_director;
 DROP TABLE IF EXISTS films;
 DROP TABLE IF EXISTS rating;
 DROP TABLE IF EXISTS friendship;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS directors;
 
 CREATE TABLE genre
 (
@@ -31,6 +33,10 @@ CREATE TABLE films
     duration     INT,
     rating       INT REFERENCES rating
 );
+  CREATE TABLE directors(
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(200) NOT NULL
+    );
 
 CREATE TABLE users
 (
@@ -80,3 +86,9 @@ CREATE TABLE review_ratings
     is_positive boolean NOT NULL,
     PRIMARY KEY (user_id, review_id)
 );
+
+  CREATE film_director(
+       id INT AUTO_INCREMENT PRIMARY KEY,
+       film_id INT NOT NULL REFERENCES films,
+       director_id INT NOT NULL REFERENCES directors
+   );

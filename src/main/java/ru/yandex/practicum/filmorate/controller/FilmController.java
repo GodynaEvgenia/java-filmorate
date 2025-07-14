@@ -66,8 +66,11 @@ public class FilmController {
     }
 
     @PutMapping()
-    public Film update(@Valid @RequestBody Film film) {
-        return filmService.update(film);
+    public FilmDto update(@Valid @RequestBody FilmDto filmDto) {
+        Film film = mapper.dtoToFilm(filmDto);
+        film = filmService.update(film);
+        FilmDto result = mapper.toDto(film);
+        return result;
     }
 
     @PutMapping("/{id}/like/{userId}") //пользователь ставит лайк фильму.
