@@ -15,13 +15,13 @@ import ru.yandex.practicum.filmorate.model.AppError;
 public class ErrorHandler {
     @ExceptionHandler
     public ResponseEntity<AppError> handleValidationException(final ValidationException e) {
-        return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), e.getMessage()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
     public ResponseEntity<AppError> handleResourceNotFoundException(final ResourceNotFoundException e) {
         log.error("Искомый объект не найден {}", e.getMessage());
-        return new ResponseEntity<>(new AppError(HttpStatus.NOT_FOUND.value(), e.getMessage()), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(new AppError(HttpStatus.NOT_FOUND.value(), e.getMessage(), e.getMessage()), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler
@@ -29,7 +29,7 @@ public class ErrorHandler {
         log.error("Internal server error: {}", e.getMessage());
         return new ResponseEntity<>(new AppError(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                e.getMessage()),
+                e.getMessage(), e.getMessage()),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
