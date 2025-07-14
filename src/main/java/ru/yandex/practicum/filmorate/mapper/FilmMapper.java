@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.*;
-import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.RatingService;
 
@@ -46,7 +45,7 @@ public class FilmMapper {
 
     public Film dtoToFilm(FilmDto filmDto) {
         Film film = new Film();
-        if (filmDto.getId() != null){
+        if (filmDto.getId() != null) {
             film.setId(filmDto.getId());
         }
 
@@ -54,7 +53,7 @@ public class FilmMapper {
         film.setDescription(filmDto.getDescription());
         film.setReleaseDate(filmDto.getReleaseDate());
         film.setDuration(filmDto.getDuration());
-        if (filmDto.getMpa() != null){
+        if (filmDto.getMpa() != null) {
             film.setRating(filmDto.getMpa().getId());
         }
 
