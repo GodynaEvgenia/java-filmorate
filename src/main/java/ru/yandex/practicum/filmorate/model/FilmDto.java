@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -22,8 +23,9 @@ public class FilmDto {
     private Set<Genre> genres;
     private UniObject mpa;
     private Set<Director> directors;
+    private Set<Long> likes = new HashSet<>();
 
-    public FilmDto(Long id, String name, String description, LocalDate releaseDate, int duration, UniObject mpa) {
+    public FilmDto(Long id, String name, String description, LocalDate releaseDate, int duration, UniObject mpa, Set<Long> likes) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -31,6 +33,7 @@ public class FilmDto {
         this.duration = duration;
         this.genres = new LinkedHashSet<>();
         this.mpa = mpa;
+        this.likes = likes;
         this.directors = new LinkedHashSet<>();
     }
 }

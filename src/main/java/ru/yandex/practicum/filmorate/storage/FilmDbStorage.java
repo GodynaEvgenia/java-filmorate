@@ -9,10 +9,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Rating;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.repository.LikesRepository;
 
 import java.sql.Date;
@@ -126,6 +123,24 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public Optional<Film> findFilmById(Long filmId) {
+        String sql = "SELECT f.*, r.id, r.name as mpa_name " +
+                "FROM films f " +
+                "JOIN rating r ON f.rating = r.id " +
+                "WHERE f.id = ?";
+        try {
+            Film film = jdbc.queryForObject(sql, this::mapRowToFilm, filmId);
+            if (film != null) {
+                loadFilmGenres(film);
+                loadFilmLikes(film);
+            }
+            return Optional.ofNullable(film);
+        } catch (EmptyResultDataAccessException ignored) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public List<Film> getAll() {
         return jdbc.query(FIND_ALL_QUERY, this::mapRowToFilm);
     }
@@ -151,7 +166,7 @@ public class FilmDbStorage implements FilmStorage {
             return stmt;
         }, keyHolder);
 
-        film.setId(keyHolder.getKey().longValue());
+        film.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
 
         if (film.getGenres() != null) {
             List<Object[]> batchArgs = new ArrayList<>();
@@ -331,4 +346,37 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
+
+    private void loadFilmLikes(Film film) {
+        String sql = "SELECT user_id FROM likes WHERE film_id = ?";
+        List<Long> likes = jdbc.queryForList(sql, Long.class, film.getId());
+        film.setLikes(new HashSet<>(likes));
+    }
+
+    @Override
+    public Set<Long> findFilmLikes(User user) {
+        String sql = "SELECT film_id FROM likes WHERE user_id = ?";
+        return new HashSet<>(jdbc.queryForList(sql, Long.class, user.getId()));
+    }
+
+    private void loadFilmGenres(Film film) {
+        String sql = "SELECT g.id, g.name " +
+                "FROM genre g " +
+                "JOIN film_genre fg ON g.id = fg.genre_id " +
+                "WHERE fg.film_id = ? " +
+                "ORDER BY g.id";
+
+        List<Genre> genres = jdbc.query(sql, (resultSet, rowNum) -> {
+            Genre genre = new Genre();
+            genre.setId(resultSet.getLong("id"));
+            genre.setName(resultSet.getString("name"));
+            return genre;
+        }, film.getId());
+
+        Set<Long> genreIds = genres.stream()
+                .map(Genre::getId) // Получаем идентификаторы жанров
+                .collect(Collectors.toSet()); // Собираем их в Set
+
+        film.setGenres(genreIds);
+    }
 }
