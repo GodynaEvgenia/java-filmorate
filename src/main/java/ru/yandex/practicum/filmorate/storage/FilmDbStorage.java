@@ -15,8 +15,8 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.repository.LikesRepository;
 
-import java.sql.*;
 import java.sql.Date;
+import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,7 +53,7 @@ public class FilmDbStorage implements FilmStorage {
             WHERE fd.film_id IN (%s)
             ORDER BY fd.film_id, d.id
             """;
-    private static final String GET_FILM_DIRECTORS_QUERY = ""+
+    private static final String GET_FILM_DIRECTORS_QUERY = "" +
             "SELECT d.id, d.name " +
             "FROM film_director fd " +
             "JOIN directors d ON d.id = fd.director_id " +
@@ -159,7 +159,7 @@ public class FilmDbStorage implements FilmStorage {
             int[] updateCounts = jdbc.batchUpdate(INSERT_GENRY_QUERY, batchArgs);
         }
 
-        if (film.getDirectors() != null){
+        if (film.getDirectors() != null) {
             List<Object[]> batchArgs = new ArrayList<>();
             for (Director d : film.getDirectors()) {
                 Director director = directorDBStorage.findById(d.getId());
@@ -175,7 +175,7 @@ public class FilmDbStorage implements FilmStorage {
     public Film update(Film film) {
         Film exFilm = get(film.getId());
         jdbc.update(UPDATE_QUERY, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getRating(), film.getId());
-        if (film.getDirectors() != null){
+        if (film.getDirectors() != null) {
 
             jdbc.update(DELETE_FILM_DIRECTORS_QUERY, film.getId());
             List<Object[]> batchArgs = new ArrayList<>();
@@ -186,7 +186,7 @@ public class FilmDbStorage implements FilmStorage {
             int[] updateCounts = jdbc.batchUpdate(INSERT_FILM_DIRECTOR_QUERY, batchArgs);
         }
 
-        if (film.getDirectors() != null){
+        if (film.getDirectors() != null) {
 
             jdbc.update(DELETE_FILM_DIRECTORS_QUERY, film.getId());
             List<Object[]> batchArgs = new ArrayList<>();
