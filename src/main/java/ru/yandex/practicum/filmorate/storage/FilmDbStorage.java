@@ -9,16 +9,15 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.repository.LikesRepository;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.sql.Date;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -28,67 +27,30 @@ public class FilmDbStorage implements FilmStorage {
     private RatingDbStorage ratingDbStorage;
     private GenreDbStorage genreDbStorage;
     private LikesRepository likesRepository;
-    private DirectorDBStorage directorDBStorage;
 
     private static final String FIND_ALL_QUERY = "select * from films";
-    private static final String INSERT_QUERY = "INSERT INTO films(name, description, release_date, duration, rating) " +
-            "VALUES (?, ?, ?, ?, ?)";
+    private static final String INSERT_QUERY = "INSERT INTO films(name, description, release_date, duration, rating) " + "VALUES (?, ?, ?, ?, ?)";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = ?";
-    private static final String UPDATE_QUERY = "update films set " +
-            "name = ?, description = ?, release_date = ?, duration = ?, rating = ?" +
-            "where id = ?";
+    private static final String UPDATE_QUERY = "update films set " + "name = ?, description = ?, release_date = ?, duration = ?, rating = ? " + "where id = ?";
     private static final String INSERT_GENRY_QUERY = "INSERT INTO film_genre(film_id, genre_id) VALUES (?, ?)";
-    private static final String GET_POPULAR_QUERY = "" +
-            "SELECT films.id, name, description, release_date, duration, rating, COUNT(likes.id) AS likes_count " +
-            "FROM films " +
-            "JOIN likes ON films.id = likes.film_id " +
-            "GROUP BY films.name " +
-            "ORDER BY likes_count DESC " +
-            "LIMIT ?";
-    private static final String GET_FILM_GENRES_QUERY = "" +
-            "SELECT g.id, g.name, g.description " +
-            "FROM film_genre fg " +
-            "JOIN genre g ON g.id = fg.genre_id " +
-            "WHERE film_id = ?" +
-            "ORDER BY id";
-    private static final String GET_FILM_DIRECTORS_QUERY = ""+
-            "SELECT d.id, d.name " +
-            "FROM film_director fd " +
-            "JOIN directors d ON d.id = fd.director_id " +
-            "WHERE film_id = ?" +
-            "ORDER BY id";
-    private static final String INSERT_FILM_DIRECTOR_QUERY = "INSERT INTO film_director(film_id, director_id) VALUES " +
-            " (?, ?)";
-    private static final String DELETE_FILM_DIRECTORS_QUERY = "DELETE FROM film_director WHERE film_id = ?";
-    private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY = "" +
-            "SELECT f.id, f.name, f.description, f.release_date, f.duration, rating," +
-            "COUNT(l.id) AS likes_count, d.name " +
-            "FROM films f " +
-            "JOIN film_director fd ON f.id = fd.film_id " +
-            "LEFT JOIN likes l ON f.id = l.film_id " +
-            "JOIN directors d on d.id = fd.director_id " +
-            "WHERE fd.director_id = ? " +
-            "GROUP BY f.id " +
-            "ORDER BY likes_count DESC ";
-    private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR_QUERY = "" +
-            "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, d.name " +
-            "FROM films f " +
-            "JOIN film_director fd ON f.id = fd.film_id " +
-            "JOIN directors d on d.id = fd.director_id " +
-            "WHERE fd.director_id = ? " +
-            "ORDER BY YEAR(f.release_date)";
+    private static final String GET_POPULAR_QUERY = "" + "SELECT films.id, name, description, release_date, duration, rating, COUNT(likes.id) AS likes_count " + "FROM films " + "JOIN likes ON films.id = likes.film_id " + "GROUP BY films.name " + "ORDER BY likes_count DESC " + "LIMIT ?";
+    private static final String GET_FILM_GENRES_QUERY = "" + "SELECT g.id, g.name, g.description " + "FROM film_genre fg " + "JOIN genre g ON g.id = fg.genre_id " + "WHERE film_id = ?" + "ORDER BY id";
+    private static final String GET_POPULAR_WITH_FILTERS_QUERY = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count FROM films f LEFT JOIN likes l ON f.id = l.film_id LEFT JOIN film_genre fg ON f.id = fg.film_id WHERE (? IS NULL OR fg.genre_id = ?) AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) GROUP BY f.id ORDER BY likes_count DESC LIMIT ?";
+    private static final String GET_COMMON_FILMS_QUERY = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count " + "FROM films f " + "JOIN likes l ON f.id = l.film_id " + "WHERE f.id IN ( " + "   SELECT film_id FROM likes WHERE user_id = ? " + "   INTERSECT " + "   SELECT film_id FROM likes WHERE user_id = ? " + ") " + "GROUP BY f.id " + "ORDER BY likes_count DESC";
+    private static final String GET_GENRES_FOR_FILMS_QUERY = """
+            SELECT fg.film_id, g.id, g.name, g.description
+            FROM film_genre fg
+            JOIN genre g ON fg.genre_id = g.id
+            WHERE fg.film_id IN (%s)
+            ORDER BY fg.film_id, g.id
+            """;
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbc,
-                         RatingDbStorage ratingDbStorage,
-                         GenreDbStorage genreDbStorage,
-                         LikesRepository likesRepository,
-                         DirectorDBStorage directorDBStorage) {
+    public FilmDbStorage(JdbcTemplate jdbc, RatingDbStorage ratingDbStorage, GenreDbStorage genreDbStorage, LikesRepository likesRepository) {
         this.jdbc = jdbc;
         this.ratingDbStorage = ratingDbStorage;
         this.genreDbStorage = genreDbStorage;
         this.likesRepository = likesRepository;
-        this.directorDBStorage = directorDBStorage;
     }
 
     public Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
@@ -142,7 +104,6 @@ public class FilmDbStorage implements FilmStorage {
             } else {
                 stmt.setLong(5, film.getRating());
             }
-
             return stmt;
         }, keyHolder);
 
@@ -156,39 +117,13 @@ public class FilmDbStorage implements FilmStorage {
             }
             int[] updateCounts = jdbc.batchUpdate(INSERT_GENRY_QUERY, batchArgs);
         }
-
-        if (film.getDirectors() != null){
-            List<Object[]> batchArgs = new ArrayList<>();
-            for (Director d : film.getDirectors()) {
-                Director director = directorDBStorage.findById(d.getId());
-                batchArgs.add(new Object[]{film.getId(), d.getId()});
-            }
-            int[] updateCounts = jdbc.batchUpdate(INSERT_FILM_DIRECTOR_QUERY, batchArgs);
-        }
         return film;
     }
 
     @Override
     public Film update(Film film) {
         Film exFilm = get(film.getId());
-        jdbc.update(UPDATE_QUERY,
-                film.getName(),
-                film.getDescription(),
-                film.getReleaseDate(),
-                film.getDuration(),
-                film.getRating(),
-                film.getId());
-        if (film.getDirectors() != null){
-            //удалить всех режиссеров и добавить заново
-
-            jdbc.update(DELETE_FILM_DIRECTORS_QUERY, film.getId());
-            List<Object[]> batchArgs = new ArrayList<>();
-            for (Director d : film.getDirectors()) {
-                Director director = directorDBStorage.findById(d.getId());
-                batchArgs.add(new Object[]{film.getId(), d.getId()});
-            }
-            int[] updateCounts = jdbc.batchUpdate(INSERT_FILM_DIRECTOR_QUERY, batchArgs);
-        }
+        jdbc.update(UPDATE_QUERY, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getRating(), film.getId());
         return film;
     }
 
@@ -216,8 +151,9 @@ public class FilmDbStorage implements FilmStorage {
         return jdbc.query(GET_FILM_GENRES_QUERY, this::mapRowToGenre, filmId);
     }
 
-    public List<Director> getFilmDirectors(long filmId) {
-        return jdbc.query(GET_FILM_DIRECTORS_QUERY, this::mapRowToDirector, filmId);
+
+    public List<Genre> getFimGenres(long filmId) {
+        return jdbc.query(GET_FILM_GENRES_QUERY, this::mapRowToGenre, filmId);
     }
 
     public Genre mapRowToGenre(ResultSet resultSet, int rowNum) throws SQLException {
@@ -228,20 +164,40 @@ public class FilmDbStorage implements FilmStorage {
         return genre;
     }
 
-    public Director mapRowToDirector(ResultSet resultSet, int rowNum) throws SQLException {
-        Director director = new Director();
-        director.setId(resultSet.getLong("id"));
-        director.setName(resultSet.getString("name"));
-
-        return director;
+    public List<Film> getPopularFilmsWithFilters(int count, Long genreId, Integer year) {
+        return jdbc.query(GET_POPULAR_WITH_FILTERS_QUERY, this::mapRowToFilm, genreId, genreId, year, year, count);
     }
 
-    public List<Film> getFilmsByDirectorSortBy(long directorId, String sortBy) {
-        if (sortBy.equals("year")) {
-            return jdbc.query(GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR_QUERY, this::mapRowToFilm, directorId);
-        } else {
-            return jdbc.query(GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY, this::mapRowToFilm, directorId);
+    public List<Film> getCommonFilms(Long userId, Long friendId) {
+        return jdbc.query(GET_COMMON_FILMS_QUERY, this::mapRowToFilm, userId, friendId);
+    }
+
+    private Genre mapToGenre(ResultSet rs) throws SQLException {
+        Genre genre = new Genre();
+        genre.setId(rs.getLong("id"));
+        genre.setName(rs.getString("name"));
+        genre.setDescription(rs.getString("description"));
+        return genre;
+    }
+
+    @Override
+    public Map<Long, List<Genre>> getGenresForFilms(List<Long> filmIds) {
+        if (filmIds.isEmpty()) {
+            return Map.of();
         }
 
+        String inClause = filmIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+
+        String sql = String.format(GET_GENRES_FOR_FILMS_QUERY, inClause);
+
+        return jdbc.query(sql, rs -> {
+            Map<Long, List<Genre>> result = new HashMap<>();
+            while (rs.next()) {
+                Long filmId = rs.getLong("film_id");
+                Genre genre = mapToGenre(rs); // Используем новый метод
+                result.computeIfAbsent(filmId, k -> new ArrayList<>()).add(genre);
+            }
+            return result;
+        });
     }
 }

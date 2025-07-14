@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.AppError;
@@ -23,4 +24,12 @@ public class ErrorHandler {
         return new ResponseEntity<>(new AppError(HttpStatus.NOT_FOUND.value(), e.getMessage(), e.getMessage()), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler
+    public ResponseEntity<AppError> handleInternalServerException(final InternalServerException e) {
+        log.error("Internal server error: {}", e.getMessage());
+        return new ResponseEntity<>(new AppError(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                e.getMessage()),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
