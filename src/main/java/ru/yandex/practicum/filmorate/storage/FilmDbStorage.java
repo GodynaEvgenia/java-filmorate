@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
@@ -27,6 +28,7 @@ public class FilmDbStorage implements FilmStorage {
     private RatingDbStorage ratingDbStorage;
     private GenreDbStorage genreDbStorage;
     private LikesRepository likesRepository;
+    private DirectorDBStorage directorDBStorage;
 
     private static final String FIND_ALL_QUERY = "select * from films";
     private static final String INSERT_QUERY = "INSERT INTO films(name, description, release_date, duration, rating) " + "VALUES (?, ?, ?, ?, ?)";
@@ -44,13 +46,52 @@ public class FilmDbStorage implements FilmStorage {
             WHERE fg.film_id IN (%s)
             ORDER BY fg.film_id, g.id
             """;
+    private static final String GET_DIRECTORS_FOR_FILMS_QUERY = """
+            SELECT fd.film_id, d.id, d.name
+            FROM film_director fd
+            JOIN directors d ON fd.director_id = d.id
+            WHERE fd.film_id IN (%s)
+            ORDER BY fd.film_id, d.id
+            """;
+    private static final String GET_FILM_DIRECTORS_QUERY = ""+
+            "SELECT d.id, d.name " +
+            "FROM film_director fd " +
+            "JOIN directors d ON d.id = fd.director_id " +
+            "WHERE film_id = ?" +
+            "ORDER BY id";
+    private static final String INSERT_FILM_DIRECTOR_QUERY = "INSERT INTO film_director(film_id, director_id) VALUES " +
+            " (?, ?)";
+    private static final String DELETE_FILM_DIRECTORS_QUERY = "DELETE FROM film_director WHERE film_id = ?";
+    private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY = "" +
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, rating," +
+            "COUNT(l.id) AS likes_count, d.name " +
+            "FROM films f " +
+            "JOIN film_director fd ON f.id = fd.film_id " +
+            "LEFT JOIN likes l ON f.id = l.film_id " +
+            "JOIN directors d on d.id = fd.director_id " +
+            "WHERE fd.director_id = ? " +
+            "GROUP BY f.id " +
+            "ORDER BY likes_count DESC ";
+    private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR_QUERY = "" +
+            "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, d.name " +
+            "FROM films f " +
+            "JOIN film_director fd ON f.id = fd.film_id " +
+            "JOIN directors d on d.id = fd.director_id " +
+            "WHERE fd.director_id = ? " +
+            "ORDER BY YEAR(f.release_date)";
+
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbc, RatingDbStorage ratingDbStorage, GenreDbStorage genreDbStorage, LikesRepository likesRepository) {
+    public FilmDbStorage(JdbcTemplate jdbc,
+                         RatingDbStorage ratingDbStorage,
+                         GenreDbStorage genreDbStorage,
+                         LikesRepository likesRepository,
+                         DirectorDBStorage directorDBStorage) {
         this.jdbc = jdbc;
         this.ratingDbStorage = ratingDbStorage;
         this.genreDbStorage = genreDbStorage;
         this.likesRepository = likesRepository;
+        this.directorDBStorage = directorDBStorage;
     }
 
     public Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
@@ -117,6 +158,16 @@ public class FilmDbStorage implements FilmStorage {
             }
             int[] updateCounts = jdbc.batchUpdate(INSERT_GENRY_QUERY, batchArgs);
         }
+
+        if (film.getDirectors() != null){
+            List<Object[]> batchArgs = new ArrayList<>();
+            for (Director d : film.getDirectors()) {
+                Director director = directorDBStorage.findById(d.getId());
+                batchArgs.add(new Object[]{film.getId(), d.getId()});
+            }
+            int[] updateCounts = jdbc.batchUpdate(INSERT_FILM_DIRECTOR_QUERY, batchArgs);
+        }
+
         return film;
     }
 
@@ -124,6 +175,28 @@ public class FilmDbStorage implements FilmStorage {
     public Film update(Film film) {
         Film exFilm = get(film.getId());
         jdbc.update(UPDATE_QUERY, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getRating(), film.getId());
+        if (film.getDirectors() != null){
+
+            jdbc.update(DELETE_FILM_DIRECTORS_QUERY, film.getId());
+            List<Object[]> batchArgs = new ArrayList<>();
+            for (Director d : film.getDirectors()) {
+                Director director = directorDBStorage.findById(d.getId());
+                batchArgs.add(new Object[]{film.getId(), d.getId()});
+            }
+            int[] updateCounts = jdbc.batchUpdate(INSERT_FILM_DIRECTOR_QUERY, batchArgs);
+        }
+
+        if (film.getDirectors() != null){
+
+            jdbc.update(DELETE_FILM_DIRECTORS_QUERY, film.getId());
+            List<Object[]> batchArgs = new ArrayList<>();
+            for (Director d : film.getDirectors()) {
+                Director director = directorDBStorage.findById(d.getId());
+                batchArgs.add(new Object[]{film.getId(), d.getId()});
+            }
+            int[] updateCounts = jdbc.batchUpdate(INSERT_FILM_DIRECTOR_QUERY, batchArgs);
+        }
+
         return film;
     }
 
@@ -200,4 +273,53 @@ public class FilmDbStorage implements FilmStorage {
             return result;
         });
     }
+
+    private Director mapToDirector(ResultSet rs) throws SQLException {
+        Director director = new Director();
+        director.setId(rs.getLong("id"));
+        director.setName(rs.getString("name"));
+
+        return director;
+    }
+
+    public Map<Long, List<Director>> getDirectorsForFilms(List<Long> filmIds) {
+        if (filmIds.isEmpty()) {
+            return Map.of();
+        }
+
+        String inClause = filmIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+
+        String sql = String.format(GET_DIRECTORS_FOR_FILMS_QUERY, inClause);
+
+        return jdbc.query(sql, rs -> {
+            Map<Long, List<Director>> result = new HashMap<>();
+            while (rs.next()) {
+                Long filmId = rs.getLong("film_id");
+                Director director = mapToDirector(rs);
+                result.computeIfAbsent(filmId, k -> new ArrayList<>()).add(director);
+            }
+            return result;
+        });
+    }
+
+    public Director mapRowToDirector(ResultSet resultSet, int rowNum) throws SQLException {
+        Director director = new Director();
+        director.setId(resultSet.getLong("id"));
+        director.setName(resultSet.getString("name"));
+
+        return director;
+    }
+
+    public List<Director> getFilmDirectors(long filmId) {
+        return jdbc.query(GET_FILM_DIRECTORS_QUERY, this::mapRowToDirector, filmId);
+    }
+
+    public List<Film> getFilmsByDirectorSortBy(long directorId, String sortBy) {
+        if (sortBy.equals("year")) {
+            return jdbc.query(GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR_QUERY, this::mapRowToFilm, directorId);
+        } else {
+            return jdbc.query(GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY, this::mapRowToFilm, directorId);
+        }
+    }
+
 }

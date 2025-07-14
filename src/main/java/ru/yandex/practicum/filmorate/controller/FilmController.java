@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -30,19 +31,16 @@ public class FilmController {
     private final UserService userService;
     private final RatingService ratingService;
     private final GenreService genreService;
-    private final FilmMapper mapper;
 
     @Autowired
     public FilmController(FilmService filmService,
                           UserService userService,
                           RatingService ratingService,
-                          GenreService genreService,
-                          FilmMapper filmMapper) {
+                          GenreService genreService) {
         this.filmService = filmService;
         this.userService = userService;
         this.ratingService = ratingService;
         this.genreService = genreService;
-        this.mapper = filmMapper;
     }
 
     @GetMapping()
@@ -52,25 +50,17 @@ public class FilmController {
 
     @GetMapping("/{filmId}")
     public FilmDto findById(@PathVariable long filmId) {
-        Film film = filmService.get(filmId);
-        List<Genre> genres = filmService.getFilmGenres(filmId);
-        return mapper.toDto(film, genres);
+        return filmService.get(filmId);
     }
 
     @PostMapping()
     public FilmDto create(@RequestBody FilmDto filmDto) {
-        Film film = mapper.dtoToFilm(filmDto);
-        film = filmService.create(film);
-        List<Genre> genres = filmService.getFilmGenres(film.getId());
-        return mapper.toDto(film, genres);
+        return filmService.create(filmDto);
     }
 
     @PutMapping()
     public FilmDto update(@Valid @RequestBody FilmDto filmDto) {
-        Film film = mapper.dtoToFilm(filmDto);
-        film = filmService.update(film);
-        FilmDto result = mapper.toDto(film);
-        return result;
+        return filmService.update(filmDto);
     }
 
     @PutMapping("/{id}/like/{userId}") //пользователь ставит лайк фильму.
@@ -94,5 +84,11 @@ public class FilmController {
     @GetMapping("/common")
     public List<FilmDto> getCommonFilms(@RequestParam Long userId, @RequestParam Long friendId) {
         return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmDto> getFilmsByDirectorSortBy(@PathVariable long directorId,
+                                                  @RequestParam(required = false) String sortBy) {
+        return filmService.getFilmsByDirectorSortBy(directorId, sortBy);
     }
 }

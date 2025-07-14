@@ -29,7 +29,7 @@ public class ErrorHandler {
         log.error("Internal server error: {}", e.getMessage());
         return new ResponseEntity<>(new AppError(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                e.getMessage()),
+                e.getMessage(), e.getMessage()),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

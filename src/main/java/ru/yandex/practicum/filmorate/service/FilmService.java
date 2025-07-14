@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -29,20 +30,31 @@ public class FilmService {
         this.genreService = genreService;
     }
 
-    public Film get(long filmId) {
-        return filmStorage.get(filmId);
+    public FilmDto get(long filmId) {
+        Film film = filmStorage.get(filmId);
+        List<Genre> genres = getFilmGenres(filmId);
+        List<Director> directors = getFilmDirectors(filmId);
+        return filmMapper.toDto(film, genres, directors);
     }
 
     public List<Film> getAll() {
         return filmStorage.getAll();
     }
 
-    public Film create(Film film) throws ValidationException {
-        return filmStorage.create(film);
+    public FilmDto create(FilmDto filmDto) throws ValidationException {
+        Film film = filmMapper.dtoToFilm(filmDto);
+        film = filmStorage.create(film);
+        List<Genre> genres = getFilmGenres(film.getId());
+        List<Director> directors = getFilmDirectors(film.getId());
+        return filmMapper.toDto(film, genres, directors);
     }
 
-    public Film update(Film film) throws ValidationException {
-        return filmStorage.update(film);
+    public FilmDto update(FilmDto filmDto) throws ValidationException {
+        Film film = filmMapper.dtoToFilm(filmDto);
+        film = filmStorage.update(film);
+        List<Genre> genres = getFilmGenres(film.getId());
+        List<Director> directors = getFilmDirectors(film.getId());
+        return filmMapper.toDto(film, genres, directors);
     }
 
     public void addLike(long id, long userId) {
@@ -80,7 +92,8 @@ public class FilmService {
 
         return films.stream().map(film -> {
             List<Genre> genres = getFilmGenres(film.getId());
-            return filmMapper.toDto(film, genres);
+            List<Director> directors = getFilmDirectors(film.getId());
+            return filmMapper.toDto(film, genres, directors);
         }).collect(Collectors.toList());
     }
 
@@ -101,13 +114,32 @@ public class FilmService {
         List<Long> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
 
         Map<Long, List<Genre>> genresByFilmId = filmStorage.getGenresForFilms(filmIds);
+        Map<Long, List<Director>> directorsByFilmId = filmStorage.getDirectorsForFilms(filmIds);
 
         return films.stream().map(film -> {
             List<Genre> genres = genresByFilmId.getOrDefault(film.getId(), List.of());
-            return filmMapper.toDto(film, genres);
+            List<Director> directors = directorsByFilmId.getOrDefault(film.getId(), List.of());
+            return filmMapper.toDto(film, genres, directors);
         }).collect(Collectors.toList());
-    public List<Film> getFilmsByDirectorSortBy(long directorId, String sortBy) {
-        return filmStorage.getFilmsByDirectorSortBy(directorId, sortBy);
+
+    }
+
+    public List<FilmDto> getFilmsByDirectorSortBy(long directorId, String sortBy) {
+        List<Film> films = filmStorage.getFilmsByDirectorSortBy(directorId, sortBy);
+        List<Long> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
+
+        Map<Long, List<Genre>> genresByFilmId = filmStorage.getGenresForFilms(filmIds);
+        Map<Long, List<Director>> directorsByFilmId = filmStorage.getDirectorsForFilms(filmIds);
+
+        return films.stream().map(film -> {
+            List<Genre> genres = genresByFilmId.getOrDefault(film.getId(), List.of());
+            List<Director> directors = directorsByFilmId.getOrDefault(film.getId(), List.of());
+            return filmMapper.toDto(film, genres, directors);
+        }).collect(Collectors.toList());
+    }
+
+    public List<Director> getFilmDirectors(long filmId) {
+        return filmStorage.getFilmDirectors(filmId);
     }
 
 }

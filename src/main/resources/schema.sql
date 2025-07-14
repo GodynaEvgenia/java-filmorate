@@ -87,7 +87,7 @@ CREATE TABLE review_ratings
     PRIMARY KEY (user_id, review_id)
 );
 
-  CREATE film_director(
+  CREATE TABLE film_director(
        id INT AUTO_INCREMENT PRIMARY KEY,
        film_id INT NOT NULL REFERENCES films,
        director_id INT NOT NULL REFERENCES directors
