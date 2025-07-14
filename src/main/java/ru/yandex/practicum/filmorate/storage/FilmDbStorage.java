@@ -241,9 +241,9 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public boolean deleteFilmById(Long film_id) {
+    public boolean deleteFilmById(Long filmId) {
         String sql = "DELETE FROM films WHERE id = ?";
-        return jdbc.update(sql, film_id) > 0;
+        return jdbc.update(sql, filmId) > 0;
     }
 
     public List<Film> getPopularFilmsWithFilters(int count, Long genreId, Integer year) {

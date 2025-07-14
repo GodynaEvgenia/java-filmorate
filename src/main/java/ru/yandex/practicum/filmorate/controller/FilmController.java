@@ -11,9 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.GenreService;
-import ru.yandex.practicum.filmorate.service.RatingService;
-import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
 
@@ -24,18 +21,10 @@ import java.util.List;
 @Slf4j
 public class FilmController {
     private final FilmService filmService;
-    private final UserService userService;
-    private final RatingService ratingService;
-    private final GenreService genreService;
-    private final FilmMapper mapper;
 
     @Autowired
-    public FilmController(FilmService filmService, UserService userService, RatingService ratingService, GenreService genreService, FilmMapper filmMapper) {
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
-        this.userService = userService;
-        this.ratingService = ratingService;
-        this.genreService = genreService;
-        this.mapper = filmMapper;
     }
 
     @GetMapping()
@@ -80,6 +69,7 @@ public class FilmController {
     public List<FilmDto> getCommonFilms(@RequestParam Long userId, @RequestParam Long friendId) {
         return filmService.getCommonFilms(userId, friendId);
     }
+
     @DeleteMapping("/{id}")
     public boolean deleteFilmById(@PathVariable Long id) {
         return filmService.deleteFilmById(id);
