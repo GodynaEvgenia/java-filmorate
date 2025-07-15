@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -17,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 @Slf4j
@@ -142,5 +144,15 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
         String sql = "DELETE FROM users WHERE id = ?";
 
         return jdbc.update(sql, userId) > 0;
+    }
+
+    public Optional<User> findUserById(Long id) {
+        String sql = "SELECT * FROM users WHERE id = ?";
+        try {
+            User user = jdbc.queryForObject(sql, this::mapRowToUser, id);
+            return Optional.ofNullable(user);
+        } catch (EmptyResultDataAccessException ignored) {
+            return Optional.empty();
+        }
     }
 }

@@ -23,5 +23,4 @@ public class GenreService {
     public List<Genre> findAll() {
         return genreDbStorage.findAll();
     }
-
 }
