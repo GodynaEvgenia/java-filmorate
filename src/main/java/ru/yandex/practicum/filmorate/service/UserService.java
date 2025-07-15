@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserDbStorage;
 
 import java.util.*;
@@ -42,7 +41,7 @@ public class UserService {
     }
 
     public User create(User user) {
-        if (user.getName().isBlank()) {
+        if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
         return userStorage.create(user);
@@ -118,14 +117,15 @@ public class UserService {
             Set<Long> likes = filmStorage.findFilmLikes(similarUser);
             likes.removeAll(targetLikes); // Только те, которых нет у target
             recommendedFilmIds.addAll(likes);
-        };
+        }
+        ;
 
         return filmStorage.getAll().stream()
                 .filter(film -> recommendedFilmIds.contains(film.getId()))
                 .map(film -> {
-            List<Genre> genres = filmStorage.getFilmGenres(film.getId());
-            List<Director> directors = filmStorage.getFilmDirectors(film.getId());
-            return filmMapper.toDto(film, genres, directors);
-        }).collect(Collectors.toList());
+                    List<Genre> genres = filmStorage.getFilmGenres(film.getId());
+                    List<Director> directors = filmStorage.getFilmDirectors(film.getId());
+                    return filmMapper.toDto(film, genres, directors);
+                }).collect(Collectors.toList());
     }
 }
