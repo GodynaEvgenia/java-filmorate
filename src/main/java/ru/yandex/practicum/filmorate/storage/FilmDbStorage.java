@@ -35,7 +35,7 @@ public class FilmDbStorage implements FilmStorage {
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = ?";
     private static final String UPDATE_QUERY = "update films set " + "name = ?, description = ?, release_date = ?, duration = ?, rating = ? " + "where id = ?";
     private static final String INSERT_GENRY_QUERY = "INSERT INTO film_genre(film_id, genre_id) VALUES (?, ?)";
-    private static final String GET_POPULAR_QUERY = "" + "SELECT films.id, name, description, release_date, duration, rating, COUNT(likes.id) AS likes_count " + "FROM films " + "JOIN likes ON films.id = likes.film_id " + "GROUP BY films.name " + "ORDER BY likes_count DESC " + "LIMIT ?";
+    private static final String GET_POPULAR_QUERY = "" + "SELECT films.id, name, description, release_date, duration, rating, COUNT(likes.id) AS likes_count " + "FROM films " + "left JOIN likes ON films.id = likes.film_id " + "GROUP BY films.id " + "ORDER BY likes_count DESC " + "LIMIT ?";
     private static final String GET_FILM_GENRES_QUERY = "" + "SELECT g.id, g.name, g.description " + "FROM film_genre fg " + "JOIN genre g ON g.id = fg.genre_id " + "WHERE film_id = ?" + "ORDER BY id";
     private static final String GET_POPULAR_WITH_FILTERS_QUERY = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count FROM films f LEFT JOIN likes l ON f.id = l.film_id LEFT JOIN film_genre fg ON f.id = fg.film_id WHERE (? IS NULL OR fg.genre_id = ?) AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?) GROUP BY f.id ORDER BY likes_count DESC LIMIT ?";
     private static final String GET_COMMON_FILMS_QUERY = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count " + "FROM films f " + "JOIN likes l ON f.id = l.film_id " + "WHERE f.id IN ( " + "   SELECT film_id FROM likes WHERE user_id = ? " + "   INTERSECT " + "   SELECT film_id FROM likes WHERE user_id = ? " + ") " + "GROUP BY f.id " + "ORDER BY likes_count DESC";
@@ -104,7 +104,10 @@ public class FilmDbStorage implements FilmStorage {
         if (sqlDate != null) {
             film.setReleaseDate(sqlDate.toLocalDate());
         }
-        film.setRating(resultSet.getInt("rating"));
+        int rating = resultSet.getInt("rating");
+        if (rating > 0) {
+            film.setRating(rating);
+        }
         return film;
     }
 
@@ -235,6 +238,12 @@ public class FilmDbStorage implements FilmStorage {
         genre.setName(resultSet.getString("name"));
         genre.setDescription(resultSet.getString("description"));
         return genre;
+    }
+
+    @Override
+    public boolean deleteFilmById(Long filmId) {
+        String sql = "DELETE FROM films WHERE id = ?";
+        return jdbc.update(sql, filmId) > 0;
     }
 
     public List<Film> getPopularFilmsWithFilters(int count, Long genreId, Integer year) {
