@@ -117,14 +117,15 @@ public class UserService {
             Set<Long> likes = filmStorage.findFilmLikes(similarUser);
             likes.removeAll(targetLikes); // Только те, которых нет у target
             recommendedFilmIds.addAll(likes);
-        };
+        }
+        ;
 
         return filmStorage.getAll().stream()
                 .filter(film -> recommendedFilmIds.contains(film.getId()))
                 .map(film -> {
-            List<Genre> genres = filmStorage.getFilmGenres(film.getId());
-            List<Director> directors = filmStorage.getFilmDirectors(film.getId());
-            return filmMapper.toDto(film, genres, directors);
-        }).collect(Collectors.toList());
+                    List<Genre> genres = filmStorage.getFilmGenres(film.getId());
+                    List<Director> directors = filmStorage.getFilmDirectors(film.getId());
+                    return filmMapper.toDto(film, genres, directors);
+                }).collect(Collectors.toList());
     }
 }
