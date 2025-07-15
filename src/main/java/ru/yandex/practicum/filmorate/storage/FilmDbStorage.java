@@ -379,4 +379,37 @@ public class FilmDbStorage implements FilmStorage {
 
         film.setGenres(genreIds);
     }
+
+    String generateQuery(String query, String[] by) {
+        String q = "SELECT f.id, f.name, f.description, f.release_date, f.duration, rating," +
+                "COUNT(l.id) AS likes_count, d.name " +
+                "FROM films f " +
+                "LEFT JOIN film_director fd ON f.id = fd.film_id " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "LEFT JOIN directors d on d.id = fd.director_id ";
+        if (by.length == 2) {
+            q = q + " WHERE f.name ilike ? or d.name ilike ? ";
+        } else {
+            if (Arrays.asList(by).contains("title")) {
+                q = q + " WHERE f.name ilike ? ";
+            } else {
+                q = q + " WHERE d.name ilike ? ";
+            }
+        }
+        q = q + "GROUP BY f.id " +
+                "ORDER BY likes_count DESC ";
+        return q;
+    }
+
+    public List<Film> searchFilms(String query, String[] by) {
+        String querySql = generateQuery(query, by);
+        log.info(querySql);
+        if (by.length == 2) {
+            return jdbc.query(querySql, this::mapRowToFilm, "%" + query + "%", "%" + query + "%");
+        } else {
+            return jdbc.query(querySql, this::mapRowToFilm, "%" + query + "%");
+        }
+
+    }
+
 }

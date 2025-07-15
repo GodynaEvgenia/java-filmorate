@@ -148,5 +148,19 @@ public class FilmService {
         return filmStorage.getFilmDirectors(filmId);
     }
 
+    public List<FilmDto> searchFilms(String query, String[] by) {
+        List<Film> films = filmStorage.searchFilms(query, by);
+
+        List<Long> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
+
+        Map<Long, List<Genre>> genresByFilmId = filmStorage.getGenresForFilms(filmIds);
+        Map<Long, List<Director>> directorsByFilmId = filmStorage.getDirectorsForFilms(filmIds);
+
+        return films.stream().map(film -> {
+            List<Genre> genres = genresByFilmId.getOrDefault(film.getId(), List.of());
+            List<Director> directors = directorsByFilmId.getOrDefault(film.getId(), List.of());
+            return filmMapper.toDto(film, genres, directors);
+        }).collect(Collectors.toList());
+    }
 }
 
