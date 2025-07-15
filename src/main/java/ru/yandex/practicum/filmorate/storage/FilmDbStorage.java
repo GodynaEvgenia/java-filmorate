@@ -28,6 +28,7 @@ public class FilmDbStorage implements FilmStorage {
     private DirectorDBStorage directorDBStorage;
 
     private static final String FIND_ALL_QUERY = "select * from films";
+    private static final String FIND_ALL_BY_FILM_IDS = "select * from films where id in ?";
     private static final String INSERT_QUERY = "INSERT INTO films(name, description, release_date, duration, rating) " + "VALUES (?, ?, ?, ?, ?)";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = ?";
     private static final String UPDATE_QUERY = "update films set " + "name = ?, description = ?, release_date = ?, duration = ?, rating = ? " + "where id = ?";
@@ -59,6 +60,7 @@ public class FilmDbStorage implements FilmStorage {
     private static final String INSERT_FILM_DIRECTOR_QUERY = "INSERT INTO film_director(film_id, director_id) VALUES " +
             " (?, ?)";
     private static final String DELETE_FILM_DIRECTORS_QUERY = "DELETE FROM film_director WHERE film_id = ?";
+    private static final String DELETE_FILM_GENRES_QUERY = "DELETE FROM film_genre WHERE film_id = ?";
     private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY = "" +
             "SELECT f.id, f.name, f.description, f.release_date, f.duration, rating," +
             "COUNT(l.id) AS likes_count, d.name " +
@@ -106,11 +108,6 @@ public class FilmDbStorage implements FilmStorage {
             film.setRating(rating);
         }
         return film;
-    }
-
-    @Override
-    public Collection<Film> findAll() {
-        return List.of();
     }
 
     @Override
@@ -193,15 +190,15 @@ public class FilmDbStorage implements FilmStorage {
     public Film update(Film film) {
         Film exFilm = get(film.getId());
         jdbc.update(UPDATE_QUERY, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getRating(), film.getId());
-        if (film.getDirectors() != null) {
 
-            jdbc.update(DELETE_FILM_DIRECTORS_QUERY, film.getId());
+        if (film.getGenres() != null) {
+            jdbc.update(DELETE_FILM_GENRES_QUERY, film.getId());
             List<Object[]> batchArgs = new ArrayList<>();
-            for (Director d : film.getDirectors()) {
-                Director director = directorDBStorage.findById(d.getId());
-                batchArgs.add(new Object[]{film.getId(), d.getId()});
+            for (long genreId : film.getGenres()) {
+                Genre genre = genreDbStorage.findById(genreId);
+                batchArgs.add(new Object[]{film.getId(), genreId});
             }
-            int[] updateCounts = jdbc.batchUpdate(INSERT_FILM_DIRECTOR_QUERY, batchArgs);
+            int[] updateCounts = jdbc.batchUpdate(INSERT_GENRY_QUERY, batchArgs);
         }
 
         if (film.getDirectors() != null) {
@@ -216,11 +213,6 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         return film;
-    }
-
-    @Override
-    public void delete(Integer filmId) {
-
     }
 
     @Override
@@ -239,11 +231,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public List<Genre> getFilmGenres(long filmId) {
-        return jdbc.query(GET_FILM_GENRES_QUERY, this::mapRowToGenre, filmId);
-    }
-
-
-    public List<Genre> getFimGenres(long filmId) {
         return jdbc.query(GET_FILM_GENRES_QUERY, this::mapRowToGenre, filmId);
     }
 

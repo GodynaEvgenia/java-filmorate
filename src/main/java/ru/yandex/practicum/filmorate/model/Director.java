@@ -10,6 +10,7 @@ import lombok.*;
 @Setter
 public class Director {
     private Long id;
+
     @NotBlank
     private String name;
 }

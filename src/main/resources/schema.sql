@@ -84,8 +84,8 @@ CREATE TABLE reviews
 
 CREATE TABLE review_ratings
 (
-    review_id   INT     NOT NULL REFERENCES reviews,
-    user_id     INT     NOT NULL REFERENCES users,
+    review_id   INT     NOT NULL REFERENCES reviews ON DELETE CASCADE,
+    user_id     INT     NOT NULL REFERENCES users ON DELETE CASCADE,
     is_positive boolean NOT NULL,
     PRIMARY KEY (user_id, review_id)
 );
@@ -93,7 +93,7 @@ CREATE TABLE review_ratings
 CREATE TABLE feed
 (
     event_id   INT AUTO_INCREMENT PRIMARY KEY,
-    user_id    INT         NOT NULL REFERENCES users,
+    user_id    INT         NOT NULL REFERENCES users ON DELETE CASCADE,
     timestamp  LONG        NOT NULL,
     event_type VARCHAR(10) NOT NULL,
     operation  VARCHAR(10) NOT NULL,
@@ -103,6 +103,6 @@ CREATE TABLE feed
 CREATE TABLE film_director
 (
     id          INT AUTO_INCREMENT PRIMARY KEY,
-    film_id     INT NOT NULL REFERENCES films,
-    director_id INT NOT NULL REFERENCES directors
+    film_id     INT NOT NULL REFERENCES films ON DELETE CASCADE,
+    director_id INT NOT NULL REFERENCES directors ON DELETE CASCADE
 );

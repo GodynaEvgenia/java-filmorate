@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -39,7 +38,7 @@ public class GenreDbStorage extends BaseRepository<Genre> {
         for (Long genreId : genreIds) {
             Genre genre = findById(genreId);
             if (genre.getName() == null || genre.getName().isEmpty()) {
-                throw new NotFoundException("Жанр с идентификатором " + genreId + " не найден.");
+                throw new ResourceNotFoundException("Жанр с идентификатором " + genreId + " не найден.");
             }
         }
     }
