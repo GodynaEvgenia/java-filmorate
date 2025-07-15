@@ -379,6 +379,7 @@ public class FilmDbStorage implements FilmStorage {
 
         film.setGenres(genreIds);
     }
+
     String generateQuery(String query, String[] by) {
         String q = "SELECT f.id, f.name, f.description, f.release_date, f.duration, rating," +
                 "COUNT(l.id) AS likes_count, d.name " +
