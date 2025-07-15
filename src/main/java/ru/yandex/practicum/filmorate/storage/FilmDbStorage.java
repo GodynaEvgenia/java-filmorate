@@ -331,7 +331,7 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-    String generateQuery(String query, String[] by){
+    String generateQuery(String query, String[] by) {
         String q = "SELECT f.id, f.name, f.description, f.release_date, f.duration, rating," +
                 "COUNT(l.id) AS likes_count, d.name " +
                 "FROM films f " +
@@ -341,7 +341,7 @@ public class FilmDbStorage implements FilmStorage {
         if (by.length == 2) {
             q = q + " WHERE f.name ilike ? or d.name ilike ? ";
         } else {
-            if (Arrays.asList(by).contains("title")){
+            if (Arrays.asList(by).contains("title")) {
                 q = q + " WHERE f.name ilike ? ";
             } else {
                 q = q + " WHERE d.name ilike ? ";
@@ -352,13 +352,13 @@ public class FilmDbStorage implements FilmStorage {
         return q;
     }
 
-    public List<Film> searchFilms(String query, String[] by){
+    public List<Film> searchFilms(String query, String[] by) {
         String querySql = generateQuery(query, by);
         log.info(querySql);
         if (by.length == 2) {
-            return jdbc.query(querySql, this::mapRowToFilm, "%"+query+"%", "%"+query+"%");
+            return jdbc.query(querySql, this::mapRowToFilm, "%" + query + "%", "%" + query + "%");
         } else {
-            return jdbc.query(querySql, this::mapRowToFilm, "%"+query+"%");
+            return jdbc.query(querySql, this::mapRowToFilm, "%" + query + "%");
         }
 
     }
