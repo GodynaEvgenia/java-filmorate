@@ -2,15 +2,14 @@ package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public interface FilmStorage {
     Collection<Film> findAll();
 
-    Film get(long filmId);
+    Film get(long id);
 
     List<Film> getAll();
 
@@ -33,4 +32,8 @@ public interface FilmStorage {
     List<Film> getCommonFilms(Long userId, Long friendId);
 
     Map<Long, List<Genre>> getGenresForFilms(List<Long> filmIds);
+
+    public Set<Long> findFilmLikes(User user);
+
+    public Optional<Film> findFilmById(Long filmId);
 }

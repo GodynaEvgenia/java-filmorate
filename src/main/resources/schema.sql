@@ -25,18 +25,21 @@ CREATE TABLE rating
     description VARCHAR(255)
 );
 
-  CREATE TABLE films (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      description VARCHAR(255),
-      release_date DATE,
-      duration INT,
-      rating INT REFERENCES rating ON DELETE RESTRICT ON UPDATE RESTRICT
-  );
-  CREATE TABLE directors(
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(200) NOT NULL
-    );
+CREATE TABLE films
+(
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    name         VARCHAR(255) NOT NULL,
+    description  VARCHAR(255),
+    release_date DATE,
+    duration     INT,
+    rating       INT REFERENCES rating ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+CREATE TABLE directors
+(
+    id   INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(200) NOT NULL
+);
 
 CREATE TABLE users
 (
@@ -47,22 +50,25 @@ CREATE TABLE users
     birthday DATE
 );
 
-CREATE TABLE likes(
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE likes
+(
+    id      INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users ON DELETE CASCADE ON UPDATE RESTRICT,
     film_id INT NOT NULL REFERENCES films ON DELETE CASCADE ON UPDATE RESTRICT
 );
 
-CREATE TABLE friendship(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES users ON DELETE CASCADE ON UPDATE RESTRICT,
+CREATE TABLE friendship
+(
+    id        INT AUTO_INCREMENT PRIMARY KEY,
+    user_id   INT NOT NULL REFERENCES users ON DELETE CASCADE ON UPDATE RESTRICT,
     friend_id INT NOT NULL REFERENCES users ON DELETE CASCADE ON UPDATE RESTRICT,
-    status VARCHAR(50)
+    status    VARCHAR(50)
 );
 
-CREATE TABLE film_genre(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    film_id INT NOT NULL REFERENCES films ON DELETE CASCADE ON UPDATE RESTRICT,
+CREATE TABLE film_genre
+(
+    id       INT AUTO_INCREMENT PRIMARY KEY,
+    film_id  INT NOT NULL REFERENCES films ON DELETE CASCADE ON UPDATE RESTRICT,
     genre_id INT NOT NULL REFERENCES genre ON DELETE CASCADE ON UPDATE RESTRICT
 );
 
@@ -94,8 +100,9 @@ CREATE TABLE feed
     entity_id  INT         NOT NULL
 );
 
-  CREATE TABLE film_director(
-       id INT AUTO_INCREMENT PRIMARY KEY,
-       film_id INT NOT NULL REFERENCES films,
-       director_id INT NOT NULL REFERENCES directors
-   );
+CREATE TABLE film_director
+(
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    film_id     INT NOT NULL REFERENCES films,
+    director_id INT NOT NULL REFERENCES directors
+);

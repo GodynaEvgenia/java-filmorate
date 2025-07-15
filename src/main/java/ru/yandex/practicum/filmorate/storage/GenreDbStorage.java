@@ -3,12 +3,15 @@ package ru.yandex.practicum.filmorate.storage;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.BaseRepository;
 
 import java.util.List;
+import java.util.Set;
 
 @Component
 @Repository
@@ -29,4 +32,15 @@ public class GenreDbStorage extends BaseRepository<Genre> {
         return findMany(FIND_ALL_QUERY);
     }
 
+    public void exists(Film film) {
+        Set<Long> genreIds = film.getGenres();
+        if (genreIds == null || genreIds.isEmpty()) return;
+
+        for (Long genreId : genreIds) {
+            Genre genre = findById(genreId);
+            if (genre.getName() == null || genre.getName().isEmpty()) {
+                throw new NotFoundException("Жанр с идентификатором " + genreId + " не найден.");
+            }
+        }
+    }
 }
