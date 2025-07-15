@@ -36,8 +36,12 @@ public class FilmService {
         return filmMapper.toDto(film, genres, directors);
     }
 
-    public List<Film> getAll() {
-        return filmStorage.getAll();
+    public List<FilmDto> getAll() {
+        return filmStorage.getAll().stream().map(film -> {
+            List<Genre> genres = getFilmGenres(film.getId());
+            List<Director> directors = getFilmDirectors(film.getId());
+            return filmMapper.toDto(film, genres, directors);
+        }).collect(Collectors.toList());
     }
 
     public FilmDto create(FilmDto filmDto) throws ValidationException {
@@ -57,11 +61,13 @@ public class FilmService {
     }
 
     public void addLike(long id, long userId) {
+        userService.get(userId);
         filmStorage.addLike(id, userId);
         feedService.createFeed(userId, EventType.LIKE, EventOperation.ADD, id);
     }
 
     public void deleteLike(long id, long userId) {
+        userService.get(userId);
         filmStorage.deleteLike(id, userId);
         feedService.createFeed(userId, EventType.LIKE, EventOperation.REMOVE, id);
     }
@@ -132,6 +138,9 @@ public class FilmService {
 
     public List<FilmDto> getFilmsByDirectorSortBy(long directorId, String sortBy) {
         List<Film> films = filmStorage.getFilmsByDirectorSortBy(directorId, sortBy);
+        if (films.isEmpty()) {
+            throw new ResourceNotFoundException("Фильмы по Режиссеру с id = " + directorId + " не найдены");
+        }
         List<Long> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
 
         Map<Long, List<Genre>> genresByFilmId = filmStorage.getGenresForFilms(filmIds);

@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.*;
 
 public interface FilmStorage {
-    Collection<Film> findAll();
 
     Film get(long id);
 
@@ -16,8 +15,6 @@ public interface FilmStorage {
     Film create(Film film);
 
     Film update(Film film);
-
-    void delete(Integer filmId);
 
     void addLike(long id, long userId);
 

@@ -3,28 +3,30 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.EventOperation;
-import ru.yandex.practicum.filmorate.model.EventType;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserDbStorage;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class UserService {
     private UserDbStorage userStorage;
     private FeedService feedService;
-    private final FilmStorage filmStorage;
+    private FilmDbStorage filmStorage;
+    private FilmMapper filmMapper;
 
     @Autowired
-    public UserService(UserDbStorage userStorage, FeedService feedService, FilmStorage filmStorage) {
+    public UserService(UserDbStorage userStorage, FeedService feedService, FilmDbStorage filmStorage, FilmMapper filmMapper) {
         this.userStorage = userStorage;
         this.feedService = feedService;
         this.filmStorage = filmStorage;
+        this.filmMapper = filmMapper;
     }
 
     public User get(long id) {
@@ -40,6 +42,9 @@ public class UserService {
     }
 
     public User create(User user) {
+        if (user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
         return userStorage.create(user);
     }
 
@@ -72,10 +77,10 @@ public class UserService {
 
     public User getUserById(Long id) {
         return userStorage.findUserById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id = " + id + " не найден"));
     }
 
-    public List<Film> getRecommendations(Long userId) {
+    public List<FilmDto> getRecommendations(Long userId) {
         User targetUser = getUserById(userId);
 
         Set<Long> targetLikes = new HashSet<>(filmStorage.findFilmLikes(targetUser));
@@ -113,12 +118,14 @@ public class UserService {
             Set<Long> likes = filmStorage.findFilmLikes(similarUser);
             likes.removeAll(targetLikes); // Только те, которых нет у target
             recommendedFilmIds.addAll(likes);
-        }
+        };
 
-        return recommendedFilmIds.stream()
-                .map(filmStorage::findFilmById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
+        return filmStorage.getAll().stream()
+                .filter(film -> recommendedFilmIds.contains(film.getId()))
+                .map(film -> {
+            List<Genre> genres = filmStorage.getFilmGenres(film.getId());
+            List<Director> directors = filmStorage.getFilmDirectors(film.getId());
+            return filmMapper.toDto(film, genres, directors);
+        }).collect(Collectors.toList());
     }
 }
