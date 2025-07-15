@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.EventOperation;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -21,13 +23,15 @@ public class FilmService {
     private UserService userService;
     private final FilmMapper filmMapper;
     private final GenreService genreService;
+    private FeedService feedService;
 
     @Autowired
-    public FilmService(FilmDbStorage filmStorage, UserService userService, FilmMapper filmMapper, GenreService genreService) {
+    public FilmService(FilmDbStorage filmStorage, UserService userService, FilmMapper filmMapper, GenreService genreService, FeedService feedService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
         this.filmMapper = filmMapper;
         this.genreService = genreService;
+        this.feedService = feedService;
     }
 
     public FilmDto get(long filmId) {
@@ -59,10 +63,12 @@ public class FilmService {
 
     public void addLike(long id, long userId) {
         filmStorage.addLike(id, userId);
+        feedService.createFeed(userId, EventType.LIKE, EventOperation.ADD, id);
     }
 
     public void deleteLike(long id, long userId) {
         filmStorage.deleteLike(id, userId);
+        feedService.createFeed(userId, EventType.LIKE, EventOperation.REMOVE, id);
     }
 
     public List<Film> getPopular(int count) {
