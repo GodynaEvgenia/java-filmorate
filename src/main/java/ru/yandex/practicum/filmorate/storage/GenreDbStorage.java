@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.repository.BaseRepository;
 import java.util.List;
 import java.util.Set;
 
-@Component
 @Repository
 public class GenreDbStorage extends BaseRepository<Genre> {
     private static final String FIND_ALL_QUERY = "SELECT * FROM genre";

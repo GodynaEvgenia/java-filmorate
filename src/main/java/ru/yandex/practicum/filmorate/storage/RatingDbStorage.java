@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.repository.BaseRepository;
 
 import java.util.List;
 
-@Component
 @Repository
 public class RatingDbStorage extends BaseRepository<Rating> {
     private static final String FIND_ALL_QUERY = "SELECT * FROM rating";

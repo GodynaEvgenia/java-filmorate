@@ -17,7 +17,6 @@ import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component
 @Slf4j
 @Repository
 public class FilmDbStorage implements FilmStorage {
@@ -230,7 +229,7 @@ public class FilmDbStorage implements FilmStorage {
                 Genre genre = genreDbStorage.findById(genreId);
                 batchArgs.add(new Object[]{film.getId(), genreId});
             }
-            int[] updateCounts = jdbc.batchUpdate(INSERT_GENRY_QUERY, batchArgs);
+            int[] updateCounts = jdbc.batchUpdate(INSERT_GENRE_QUERY, batchArgs);
         }
 
         if (film.getDirectors() != null) {
@@ -257,7 +256,7 @@ public class FilmDbStorage implements FilmStorage {
                 Genre genre = genreDbStorage.findById(genreId);
                 batchArgs.add(new Object[]{film.getId(), genreId});
             }
-            int[] updateCounts = jdbc.batchUpdate(INSERT_GENRY_QUERY, batchArgs);
+            int[] updateCounts = jdbc.batchUpdate(INSERT_GENRE_QUERY, batchArgs);
         }
 
         if (film.getDirectors() != null) {

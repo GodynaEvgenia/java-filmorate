@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-@Component
 @Slf4j
 @Repository
 public class ReviewRatingDbStorage {

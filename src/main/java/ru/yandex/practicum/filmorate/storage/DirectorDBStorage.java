@@ -14,7 +14,6 @@ import ru.yandex.practicum.filmorate.repository.BaseRepository;
 import java.sql.PreparedStatement;
 import java.util.List;
 
-@Component
 @Slf4j
 @Repository
 public class DirectorDBStorage extends BaseRepository<Director> {

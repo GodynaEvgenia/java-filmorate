@@ -15,7 +15,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
-@Component
 @Slf4j
 @Repository
 public class ReviewDbStorage {
