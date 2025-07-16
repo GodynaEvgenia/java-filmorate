@@ -1,30 +1,24 @@
 package ru.yandex.practicum.filmorate.model;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+
+@RequiredArgsConstructor
 public class AppError {
     private int statusCode;
     private String message;
+    private String error;
 
-    public int getStatusCode() {
-        return statusCode;
-    }
+    /*public AppError() {
+    }*/
 
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public AppError() {
-    }
-
-    public AppError(int statusCode, String message) {
+    public AppError(int statusCode, String message, String error) {
         this.statusCode = statusCode;
         this.message = message;
+        this.error = error;
     }
 }

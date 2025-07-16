@@ -1,27 +1,29 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.impl;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.AllArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.repository.BaseRepository;
+import ru.yandex.practicum.filmorate.storage.interfaces.UserStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
 
 @Component
-@Slf4j
-@Repository
-public class UserDbStorage extends BaseRepository<User> implements UserStorage {
+@AllArgsConstructor
+public class UserDbStorage implements UserStorage {
+
+    private final JdbcTemplate jdbc;
+    private final UserRowMapper userRowMapper;
+
     private static final String FIND_ALL_QUERY = "SELECT * FROM users";
     private static final String INSERT_QUERY = "INSERT INTO users(name, login, email, birthday) VALUES (?, ?, ?, ?)";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM users WHERE id = ?";
@@ -29,25 +31,20 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
             "name = ?, login = ?, email = ?, birthday = ? " +
             "where id = ?";
     private static final String ADD_FRIEND_QUERY = "INSERT INTO friendship (user_id, friend_id) VALUES (?, ?)";
-    private static final String GET_FRIENDS_QUERY = "" +
-            "SELECT * from users u, friendship f where f.user_id = ? and u.id = f.friend_id";
-    private static final String DELETE_FRIEND_QUERY = "DELETE FROM friendship where user_id = ? and friend_id = ?";
-    private static final String GET_COMMON_FRIENDS_QUERY = "" +
+    private static final String GET_FRIENDS_QUERY =
+            "SELECT * FROM users u, friendship f WHERE f.user_id = ? AND u.id = f.friend_id";
+    private static final String DELETE_FRIEND_QUERY =
+            "DELETE FROM friendship WHERE user_id = ? AND friend_id = ?";
+    private static final String DELETE_FRIEND_BY_USER_QUERY =
+            "DELETE FROM friendship WHERE user_id = ? OR friend_id = ?";
+    private static final String GET_COMMON_FRIENDS_QUERY =
             "SELECT * from users u where u.id in (" +
-            "SELECT f1.friend_id " +
-            "FROM friendship f1 " +
-            "JOIN friendship f2 ON f1.friend_id = f2.friend_id " +
-            "WHERE f1.user_id = ?" +
-            "  AND f2.user_id = ?)";
-
-    public UserDbStorage(JdbcTemplate jdbc, UserRowMapper mapper) {
-        super(jdbc, mapper);
-    }
-
-    @Override
-    public Map<Long, User> findAll() {
-        return Map.of();
-    }
+                    "SELECT f1.friend_id " +
+                    "FROM friendship f1 " +
+                    "JOIN friendship f2 ON f1.friend_id = f2.friend_id " +
+                    "WHERE f1.user_id = ?" +
+                    "  AND f2.user_id = ?)";
+    private static final String DELETE_USER_BY_ID = "DELETE FROM users WHERE id = ?";
 
     @Override
     public List<User> getAll() {
@@ -56,8 +53,11 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
 
     @Override
     public User get(long id) {
-        return findOne(FIND_BY_ID_QUERY, id)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользоваатель не найден с ID: " + id));
+        try {
+            return jdbc.queryForObject(FIND_BY_ID_QUERY, userRowMapper, id);
+        } catch (EmptyResultDataAccessException ex) {
+            throw new ResourceNotFoundException("Пользователь не найден с ID: " + id);
+        }
     }
 
     @Override
@@ -69,7 +69,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
             stmt.setString(1, user.getName());
             stmt.setString(2, user.getLogin());
             stmt.setString(3, user.getEmail());
-            stmt.setString(4, null);
+            stmt.setString(4, String.valueOf(user.getBirthday()));
             return stmt;
         }, keyHolder);
 
@@ -79,7 +79,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
 
     @Override
     public User update(User user) {
-        User exUser = get(user.getId());
+        get(user.getId());
         jdbc.update(UPDATE_QUERY,
                 user.getName(),
                 user.getLogin(),
@@ -87,10 +87,6 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
                 user.getBirthday(),
                 user.getId());
         return user;
-    }
-
-    @Override
-    public void delete(Integer userId) {
     }
 
     private User mapRowToUser(ResultSet resultSet, int rowNum) throws SQLException {
@@ -106,27 +102,37 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
         return user;
     }
 
+    @Override
     public void addFriend(long userId, long friendId) {
-        User exFriend = get(friendId);
+        get(friendId);
         jdbc.update(ADD_FRIEND_QUERY,
                 userId,
                 friendId);
     }
 
+    @Override
     public List<User> getFriends(long userId) {
-        User exUser = get(userId);
+        get(userId);
         return jdbc.query(GET_FRIENDS_QUERY, this::mapRowToUser, userId);
     }
 
+    @Override
     public void deleteFriend(long userId, long friendId) {
-        User exUser = get(userId);
-        User exFriend = get(friendId);
+        get(userId);
+        get(friendId);
         jdbc.update(DELETE_FRIEND_QUERY,
                 userId,
                 friendId);
     }
 
+    @Override
     public List<User> getCommonFriends(long userId, long userId2) {
         return jdbc.query(GET_COMMON_FRIENDS_QUERY, this::mapRowToUser, userId, userId2);
+    }
+
+    @Override
+    public boolean deleteUserById(Long userId) {
+        get(userId);
+        return jdbc.update(DELETE_USER_BY_ID, userId) > 0;
     }
 }

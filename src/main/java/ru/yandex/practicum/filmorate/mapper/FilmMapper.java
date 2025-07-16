@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.*;
-import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.RatingService;
 
@@ -14,18 +13,15 @@ import java.util.List;
 public class FilmMapper {
     private final RatingService ratingService;
     private final GenreService genreService;
-    private final FilmService filmService;
+
 
     @Autowired
-    public FilmMapper(RatingService ratingService,
-                      GenreService genreService,
-                      FilmService filmService) {
+    public FilmMapper(RatingService ratingService, GenreService genreService) {
         this.ratingService = ratingService;
         this.genreService = genreService;
-        this.filmService = filmService;
     }
 
-    public FilmDto toDto(Film film) {
+    public FilmDto toDto(Film film, List<Genre> genres, List<Director> directors) {
         FilmDto dto = new FilmDto();
         dto.setId(film.getId());
         dto.setName(film.getName());
@@ -40,24 +36,37 @@ public class FilmMapper {
         uo.setId(mpa.getId());
         uo.setName(mpa.getName());
         dto.setMpa(uo);
-        List<Genre> genres = filmService.getFilmGenres(film.getId());
         dto.setGenres(new LinkedHashSet<>(genres));
+
+        dto.setDirectors(new LinkedHashSet<>(directors));
 
         return dto;
     }
 
     public Film dtoToFilm(FilmDto filmDto) {
         Film film = new Film();
+        if (filmDto.getId() != null) {
+            film.setId(filmDto.getId());
+        }
+
         film.setName(filmDto.getName());
         film.setDescription(filmDto.getDescription());
         film.setReleaseDate(filmDto.getReleaseDate());
         film.setDuration(filmDto.getDuration());
-        film.setRating(filmDto.getMpa().getId());
+        if (filmDto.getMpa() != null) {
+            film.setRating(filmDto.getMpa().getId());
+        }
 
         film.setGenres(new LinkedHashSet<>());
         if (filmDto.getGenres() != null) {
             for (Genre genre : filmDto.getGenres()) {
                 film.getGenres().add(genre.getId());
+            }
+        }
+        film.setDirectors(new LinkedHashSet<>());
+        if (filmDto.getDirectors() != null) {
+            for (Director director : filmDto.getDirectors()) {
+                film.getDirectors().add(director);
             }
         }
         return film;

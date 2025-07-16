@@ -1,26 +1,27 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Rating;
-import ru.yandex.practicum.filmorate.storage.RatingDbStorage;
+import ru.yandex.practicum.filmorate.storage.interfaces.RatingStorage;
 
 import java.util.List;
 
+@Slf4j
 @Service
+@AllArgsConstructor
 public class RatingService {
-    private RatingDbStorage ratingDbStorage;
 
-    @Autowired
-    public RatingService(RatingDbStorage genreDbStorage) {
-        this.ratingDbStorage = genreDbStorage;
-    }
+    private final RatingStorage ratingStorage;
 
     public Rating findById(int id) {
-        return ratingDbStorage.findById(id);
+        log.info("Запрос рейтинга MPA с ID = " + id);
+        return ratingStorage.findById(id);
     }
 
     public List<Rating> findAll() {
-        return ratingDbStorage.findAll();
+        log.info("Запрос всех рейтингов MPA");
+        return ratingStorage.findAll();
     }
 }
