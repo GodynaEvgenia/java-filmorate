@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.RatingRowMapper;
@@ -24,7 +23,6 @@ public class RatingDbStorage extends BaseRepository<Rating> {
     }
 
     public Rating findById(int id) {
-        return findOne(FIND_BY_ID_QUERY, id)
-                .orElseThrow(() -> new ResourceNotFoundException("Рейтинг не найден с ID: " + id));
+        return findOne(FIND_BY_ID_QUERY, id).orElseThrow(() -> new ResourceNotFoundException("Рейтинг не найден с ID: " + id));
     }
 }

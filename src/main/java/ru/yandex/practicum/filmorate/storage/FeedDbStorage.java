@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.EventOperation;
 import ru.yandex.practicum.filmorate.model.EventType;
@@ -23,9 +22,7 @@ public class FeedDbStorage {
     }
 
     public List<Feed> getFeed(int userId) {
-        final String sql = "SELECT * " +
-                "FROM feed " +
-                "WHERE user_id = ? ";
+        final String sql = "SELECT * " + "FROM feed " + "WHERE user_id = ? ";
 
         return jdbc.query(sql, this::mapRowFeed, userId);
     }
@@ -33,14 +30,7 @@ public class FeedDbStorage {
     public void createEvent(Feed feed) {
         final String sql = "insert into feed (user_id, timestamp, event_type, operation, entity_id) values (?, ?, ?, ?, ?)";
 
-        jdbc.update(
-                sql,
-                feed.getUserId(),
-                feed.getTimestamp(),
-                feed.getEventType().name(),
-                feed.getOperation().name(),
-                feed.getEntityId()
-        );
+        jdbc.update(sql, feed.getUserId(), feed.getTimestamp(), feed.getEventType().name(), feed.getOperation().name(), feed.getEntityId());
     }
 
     public Feed mapRowFeed(ResultSet rs, Integer rowNum) throws SQLException {

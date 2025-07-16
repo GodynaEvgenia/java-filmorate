@@ -6,7 +6,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
@@ -27,123 +26,119 @@ public class FilmDbStorage implements FilmStorage {
     private DirectorDBStorage directorDBStorage;
 
     private static final String FIND_ALL_QUERY = """
-        SELECT * FROM films""";
+            SELECT * FROM films""";
 
     private static final String FIND_ALL_BY_FILM_IDS = """
-        SELECT * FROM films WHERE id IN ?""";
+            SELECT * FROM films WHERE id IN ?""";
 
     private static final String INSERT_QUERY = """
-        INSERT INTO films(name, description, release_date, duration, rating)
-        VALUES (?, ?, ?, ?, ?)""";
+            INSERT INTO films(name, description, release_date, duration, rating)
+            VALUES (?, ?, ?, ?, ?)""";
 
     private static final String FIND_BY_ID_QUERY = """
-        SELECT * FROM films WHERE id = ?""";
+            SELECT * FROM films WHERE id = ?""";
 
     private static final String UPDATE_QUERY = """
-        UPDATE films SET
-        name = ?, description = ?, release_date = ?, duration = ?, rating = ?
-        WHERE id = ?""";
+            UPDATE films SET
+            name = ?, description = ?, release_date = ?, duration = ?, rating = ?
+            WHERE id = ?""";
 
     private static final String INSERT_GENRE_QUERY = """
-        INSERT INTO film_genre(film_id, genre_id)
-        VALUES (?, ?)""";
+            INSERT INTO film_genre(film_id, genre_id)
+            VALUES (?, ?)""";
 
     private static final String GET_POPULAR_QUERY = """
-        SELECT films.id, name, description, release_date, duration, rating, COUNT(likes.id) AS likes_count
-        FROM films
-        LEFT JOIN likes ON films.id = likes.film_id
-        GROUP BY films.id
-        ORDER BY likes_count DESC
-        LIMIT ?""";
+            SELECT films.id, name, description, release_date, duration, rating, COUNT(likes.id) AS likes_count
+            FROM films
+            LEFT JOIN likes ON films.id = likes.film_id
+            GROUP BY films.id
+            ORDER BY likes_count DESC
+            LIMIT ?""";
 
     private static final String GET_FILM_GENRES_QUERY = """
-        SELECT g.id, g.name, g.description
-        FROM film_genre fg
-        JOIN genre g ON g.id = fg.genre_id
-        WHERE film_id = ?
-        ORDER BY id""";
+            SELECT g.id, g.name, g.description
+            FROM film_genre fg
+            JOIN genre g ON g.id = fg.genre_id
+            WHERE film_id = ?
+            ORDER BY id""";
 
     private static final String GET_POPULAR_WITH_FILTERS_QUERY = """
-        SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count
-        FROM films f
-        LEFT JOIN likes l ON f.id = l.film_id
-        LEFT JOIN film_genre fg ON f.id = fg.film_id
-        WHERE (? IS NULL OR fg.genre_id = ?) AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?)
-        GROUP BY f.id
-        ORDER BY likes_count DESC
-        LIMIT ?""";
+            SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count
+            FROM films f
+            LEFT JOIN likes l ON f.id = l.film_id
+            LEFT JOIN film_genre fg ON f.id = fg.film_id
+            WHERE (? IS NULL OR fg.genre_id = ?) AND (? IS NULL OR EXTRACT(YEAR FROM f.release_date) = ?)
+            GROUP BY f.id
+            ORDER BY likes_count DESC
+            LIMIT ?""";
 
     private static final String GET_COMMON_FILMS_QUERY = """
-        SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count
-        FROM films f
-        JOIN likes l ON f.id = l.film_id
-        WHERE f.id IN (
-            SELECT film_id FROM likes WHERE user_id = ?
-            INTERSECT
-            SELECT film_id FROM likes WHERE user_id = ?
-        )
-        GROUP BY f.id
-        ORDER BY likes_count DESC""";
+            SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, COUNT(l.id) AS likes_count
+            FROM films f
+            JOIN likes l ON f.id = l.film_id
+            WHERE f.id IN (
+                SELECT film_id FROM likes WHERE user_id = ?
+                INTERSECT
+                SELECT film_id FROM likes WHERE user_id = ?
+            )
+            GROUP BY f.id
+            ORDER BY likes_count DESC""";
 
     private static final String GET_GENRES_FOR_FILMS_QUERY = """
-        SELECT fg.film_id, g.id, g.name, g.description
-        FROM film_genre fg
-        JOIN genre g ON fg.genre_id = g.id
-        WHERE fg.film_id IN (%s)
-        ORDER BY fg.film_id, g.id""";
+            SELECT fg.film_id, g.id, g.name, g.description
+            FROM film_genre fg
+            JOIN genre g ON fg.genre_id = g.id
+            WHERE fg.film_id IN (%s)
+            ORDER BY fg.film_id, g.id""";
 
     private static final String GET_DIRECTORS_FOR_FILMS_QUERY = """
-        SELECT fd.film_id, d.id, d.name
-        FROM film_director fd
-        JOIN directors d ON fd.director_id = d.id
-        WHERE fd.film_id IN (%s)
-        ORDER BY fd.film_id, d.id""";
+            SELECT fd.film_id, d.id, d.name
+            FROM film_director fd
+            JOIN directors d ON fd.director_id = d.id
+            WHERE fd.film_id IN (%s)
+            ORDER BY fd.film_id, d.id""";
 
     private static final String GET_FILM_DIRECTORS_QUERY = """
-        SELECT d.id, d.name
-        FROM film_director fd
-        JOIN directors d ON d.id = fd.director_id
-        WHERE film_id = ?
-        ORDER BY id""";
+            SELECT d.id, d.name
+            FROM film_director fd
+            JOIN directors d ON d.id = fd.director_id
+            WHERE film_id = ?
+            ORDER BY id""";
 
     private static final String INSERT_FILM_DIRECTOR_QUERY = """
-        INSERT INTO film_director(film_id, director_id)
-        VALUES (?, ?)""";
+            INSERT INTO film_director(film_id, director_id)
+            VALUES (?, ?)""";
 
     private static final String DELETE_FILM_DIRECTORS_QUERY = """
-        DELETE FROM film_director
-        WHERE film_id = ?""";
+            DELETE FROM film_director
+            WHERE film_id = ?""";
 
     private static final String DELETE_FILM_GENRES_QUERY = """
-        DELETE FROM film_genre
-        WHERE film_id = ?""";
+            DELETE FROM film_genre
+            WHERE film_id = ?""";
 
     private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES_QUERY = """
-        SELECT f.id, f.name, f.description, f.release_date, f.duration, rating,
-        COUNT(l.id) AS likes_count, d.name
-        FROM films f
-        JOIN film_director fd ON f.id = fd.film_id
-        LEFT JOIN likes l ON f.id = l.film_id
-        JOIN directors d ON d.id = fd.director_id
-        WHERE fd.director_id = ?
-        GROUP BY f.id
-        ORDER BY likes_count DESC""";
+            SELECT f.id, f.name, f.description, f.release_date, f.duration, rating,
+            COUNT(l.id) AS likes_count, d.name
+            FROM films f
+            JOIN film_director fd ON f.id = fd.film_id
+            LEFT JOIN likes l ON f.id = l.film_id
+            JOIN directors d ON d.id = fd.director_id
+            WHERE fd.director_id = ?
+            GROUP BY f.id
+            ORDER BY likes_count DESC""";
 
     private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR_QUERY = """
-        SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, d.name
-        FROM films f
-        JOIN film_director fd ON f.id = fd.film_id
-        JOIN directors d ON d.id = fd.director_id
-        WHERE fd.director_id = ?
-        ORDER BY YEAR(f.release_date)""";
+            SELECT f.id, f.name, f.description, f.release_date, f.duration, f.rating, d.name
+            FROM films f
+            JOIN film_director fd ON f.id = fd.film_id
+            JOIN directors d ON d.id = fd.director_id
+            WHERE fd.director_id = ?
+            ORDER BY YEAR(f.release_date)""";
 
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbc,
-                         RatingDbStorage ratingDbStorage,
-                         GenreDbStorage genreDbStorage,
-                         LikesRepository likesRepository,
-                         DirectorDBStorage directorDBStorage) {
+    public FilmDbStorage(JdbcTemplate jdbc, RatingDbStorage ratingDbStorage, GenreDbStorage genreDbStorage, LikesRepository likesRepository, DirectorDBStorage directorDBStorage) {
         this.jdbc = jdbc;
         this.ratingDbStorage = ratingDbStorage;
         this.genreDbStorage = genreDbStorage;
@@ -179,10 +174,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Optional<Film> findFilmById(Long filmId) {
-        String sql = "SELECT f.*, r.id, r.name as mpa_name " +
-                "FROM films f " +
-                "JOIN rating r ON f.rating = r.id " +
-                "WHERE f.id = ?";
+        String sql = "SELECT f.*, r.id, r.name as mpa_name " + "FROM films f " + "JOIN rating r ON f.rating = r.id " + "WHERE f.id = ?";
         try {
             Film film = jdbc.queryForObject(sql, this::mapRowToFilm, filmId);
             if (film != null) {
@@ -405,11 +397,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void loadFilmGenres(Film film) {
-        String sql = "SELECT g.id, g.name " +
-                "FROM genre g " +
-                "JOIN film_genre fg ON g.id = fg.genre_id " +
-                "WHERE fg.film_id = ? " +
-                "ORDER BY g.id";
+        String sql = "SELECT g.id, g.name " + "FROM genre g " + "JOIN film_genre fg ON g.id = fg.genre_id " + "WHERE fg.film_id = ? " + "ORDER BY g.id";
 
         List<Genre> genres = jdbc.query(sql, (resultSet, rowNum) -> {
             Genre genre = new Genre();
@@ -418,20 +406,14 @@ public class FilmDbStorage implements FilmStorage {
             return genre;
         }, film.getId());
 
-        Set<Long> genreIds = genres.stream()
-                .map(Genre::getId) // Получаем идентификаторы жанров
+        Set<Long> genreIds = genres.stream().map(Genre::getId) // Получаем идентификаторы жанров
                 .collect(Collectors.toSet()); // Собираем их в Set
 
         film.setGenres(genreIds);
     }
 
     String generateQuery(String query, String[] by) {
-        String q = "SELECT f.id, f.name, f.description, f.release_date, f.duration, rating," +
-                "COUNT(l.id) AS likes_count, d.name " +
-                "FROM films f " +
-                "LEFT JOIN film_director fd ON f.id = fd.film_id " +
-                "LEFT JOIN likes l ON f.id = l.film_id " +
-                "LEFT JOIN directors d on d.id = fd.director_id ";
+        String q = "SELECT f.id, f.name, f.description, f.release_date, f.duration, rating," + "COUNT(l.id) AS likes_count, d.name " + "FROM films f " + "LEFT JOIN film_director fd ON f.id = fd.film_id " + "LEFT JOIN likes l ON f.id = l.film_id " + "LEFT JOIN directors d on d.id = fd.director_id ";
         if (by.length == 2) {
             q = q + " WHERE f.name ilike ? or d.name ilike ? ";
         } else {
@@ -441,8 +423,7 @@ public class FilmDbStorage implements FilmStorage {
                 q = q + " WHERE d.name ilike ? ";
             }
         }
-        q = q + "GROUP BY f.id " +
-                "ORDER BY likes_count DESC ";
+        q = q + "GROUP BY f.id " + "ORDER BY likes_count DESC ";
         return q;
     }
 

@@ -5,7 +5,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserRowMapper;
@@ -23,23 +22,36 @@ import java.util.Optional;
 @Slf4j
 @Repository
 public class UserDbStorage extends BaseRepository<User> implements UserStorage {
-    private static final String FIND_ALL_QUERY = "SELECT * FROM users";
-    private static final String INSERT_QUERY = "INSERT INTO users(name, login, email, birthday) VALUES (?, ?, ?, ?)";
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM users WHERE id = ?";
-    private static final String UPDATE_QUERY = "update users set " +
-            "name = ?, login = ?, email = ?, birthday = ? " +
-            "where id = ?";
-    private static final String ADD_FRIEND_QUERY = "INSERT INTO friendship (user_id, friend_id) VALUES (?, ?)";
-    private static final String GET_FRIENDS_QUERY = "" +
-            "SELECT * from users u, friendship f where f.user_id = ? and u.id = f.friend_id";
-    private static final String DELETE_FRIEND_QUERY = "DELETE FROM friendship where user_id = ? and friend_id = ?";
-    private static final String GET_COMMON_FRIENDS_QUERY = "" +
-            "SELECT * from users u where u.id in (" +
-            "SELECT f1.friend_id " +
-            "FROM friendship f1 " +
-            "JOIN friendship f2 ON f1.friend_id = f2.friend_id " +
-            "WHERE f1.user_id = ?" +
-            "  AND f2.user_id = ?)";
+    private static final String FIND_ALL_QUERY = """
+            SELECT * FROM users""";
+    private static final String INSERT_QUERY = """
+            INSERT INTO users(name, login, email, birthday)
+            VALUES (?, ?, ?, ?)""";
+    private static final String FIND_BY_ID_QUERY = """
+            SELECT * FROM users
+            WHERE id = ?""";
+    private static final String UPDATE_QUERY = """
+            UPDATE users SET
+            name = ?, login = ?, email = ?, birthday = ?
+            WHERE id = ?""";
+    private static final String ADD_FRIEND_QUERY = """
+            INSERT INTO friendship (user_id, friend_id)
+            VALUES (?, ?)""";
+    private static final String GET_FRIENDS_QUERY = """
+            SELECT * FROM users u, friendship f
+            WHERE f.user_id = ? AND u.id = f.friend_id""";
+    private static final String DELETE_FRIEND_QUERY = """
+            DELETE FROM friendship
+            WHERE user_id = ? AND friend_id = ?""";
+    private static final String GET_COMMON_FRIENDS_QUERY = """
+            SELECT * FROM users u
+            WHERE u.id IN (
+                SELECT f1.friend_id
+                FROM friendship f1
+                JOIN friendship f2 ON f1.friend_id = f2.friend_id
+                WHERE f1.user_id = ?
+                AND f2.user_id = ?
+            )""";
 
     public UserDbStorage(JdbcTemplate jdbc, UserRowMapper mapper) {
         super(jdbc, mapper);
@@ -57,8 +69,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
 
     @Override
     public User get(long id) {
-        return findOne(FIND_BY_ID_QUERY, id)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользоваатель не найден с ID: " + id));
+        return findOne(FIND_BY_ID_QUERY, id).orElseThrow(() -> new ResourceNotFoundException("Пользоваатель не найден с ID: " + id));
     }
 
     @Override
@@ -81,12 +92,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     @Override
     public User update(User user) {
         User exUser = get(user.getId());
-        jdbc.update(UPDATE_QUERY,
-                user.getName(),
-                user.getLogin(),
-                user.getEmail(),
-                user.getBirthday(),
-                user.getId());
+        jdbc.update(UPDATE_QUERY, user.getName(), user.getLogin(), user.getEmail(), user.getBirthday(), user.getId());
         return user;
     }
 
@@ -109,9 +115,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
 
     public void addFriend(long userId, long friendId) {
         User exFriend = get(friendId);
-        jdbc.update(ADD_FRIEND_QUERY,
-                userId,
-                friendId);
+        jdbc.update(ADD_FRIEND_QUERY, userId, friendId);
     }
 
     public List<User> getFriends(long userId) {
@@ -122,9 +126,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     public void deleteFriend(long userId, long friendId) {
         User exUser = get(userId);
         User exFriend = get(friendId);
-        jdbc.update(DELETE_FRIEND_QUERY,
-                userId,
-                friendId);
+        jdbc.update(DELETE_FRIEND_QUERY, userId, friendId);
     }
 
     public List<User> getCommonFriends(long userId, long userId2) {

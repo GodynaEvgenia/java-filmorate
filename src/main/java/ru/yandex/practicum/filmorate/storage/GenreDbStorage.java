@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
@@ -22,8 +21,7 @@ public class GenreDbStorage extends BaseRepository<Genre> {
     }
 
     public Genre findById(long id) {
-        return findOne(FIND_BY_ID_QUERY, id)
-                .orElseThrow(() -> new ResourceNotFoundException("Жанр не найден с ID: " + id));
+        return findOne(FIND_BY_ID_QUERY, id).orElseThrow(() -> new ResourceNotFoundException("Жанр не найден с ID: " + id));
     }
 
     public List<Genre> findAll() {

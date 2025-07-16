@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/reviews")
 public class ReviewController {
 
-    ReviewService reviewService;
+    private ReviewService reviewService;
 
     @Autowired
     public ReviewController(ReviewService reviewService) {
@@ -37,10 +37,8 @@ public class ReviewController {
     }
 
     @GetMapping
-    public List<Review> getAll(
-            @RequestParam(name = "filmId", defaultValue = "-1") Integer filmId,
-            @RequestParam(name = "count", defaultValue = "10") Integer count
-    ) {
+    public List<Review> getAll(@RequestParam(name = "filmId", defaultValue = "-1") Integer filmId,
+                               @RequestParam(name = "count", defaultValue = "10") Integer count) {
         return reviewService.getAll(filmId, count);
     }
 
