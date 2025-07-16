@@ -4,27 +4,24 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.FilmDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
+@Validated
 @RestController
 @RequestMapping("/films")
 @ControllerAdvice
-@Validated
-@Slf4j
+@AllArgsConstructor
 public class FilmController {
     private final FilmService filmService;
-
-    @Autowired
-    public FilmController(FilmService filmService) {
-        this.filmService = filmService;
-    }
 
     @GetMapping()
     public List<FilmDto> getAll() {
@@ -57,8 +54,13 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDto> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count,
-                                         @RequestParam(value = "genreId", required = false) @Positive(message = "Genre ID must be positive") Long genreId, @RequestParam(value = "year", required = false) @Min(value = 1900, message = "Year must be no earlier than 1900") @Max(value = 2100, message = "Year must be no later than 2100") Integer year) {
+    public List<FilmDto> getPopularFilms(
+            @RequestParam(value = "count", defaultValue = "10") int count,
+            @RequestParam(value = "genreId", required = false)
+                @Positive(message = "Genre ID must be positive") Long genreId,
+            @RequestParam(value = "year", required = false)
+                @Min(value = 1900, message = "Year must be no earlier than 1900")
+                @Max(value = 2100, message = "Year must be no later than 2100") Integer year) {
         log.info("Request for popular films: count={}, genreId={}, year={}", count, genreId, year);
         return filmService.getPopularFilms(count, genreId, year);
     }
@@ -74,8 +76,9 @@ public class FilmController {
     }
 
     @GetMapping("/director/{directorId}")
-    public List<FilmDto> getFilmsByDirectorSortBy(@PathVariable long directorId,
-                                                  @RequestParam(required = false) String sortBy) {
+    public List<FilmDto> getFilmsByDirectorSortBy(
+            @PathVariable long directorId,
+            @RequestParam(required = false) String sortBy) {
         return filmService.getFilmsByDirectorSortBy(directorId, sortBy);
     }
 
@@ -84,7 +87,7 @@ public class FilmController {
             @RequestParam("query") String query,
             @RequestParam(value = "by", required = false) String[] by) {
         log.info("Параметры: query " + query);
-        log.info("Параметры: by " + by);
+        log.info("Параметры: by " + Arrays.toString(by));
         return filmService.searchFilms(query, by);
     }
 }

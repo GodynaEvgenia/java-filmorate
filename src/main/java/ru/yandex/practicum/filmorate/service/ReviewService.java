@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -9,32 +9,24 @@ import ru.yandex.practicum.filmorate.model.EventOperation;
 import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.ReviewDbStorage;
-import ru.yandex.practicum.filmorate.storage.ReviewRatingDbStorage;
+import ru.yandex.practicum.filmorate.storage.interfaces.ReviewRatingStorage;
+import ru.yandex.practicum.filmorate.storage.interfaces.ReviewStorage;
 
 import java.util.List;
 import java.util.Optional;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class ReviewService {
 
-    private ReviewDbStorage reviewDbStorage;
-    private ReviewRatingDbStorage reviewRatingDbStorage;
     private UserService userService;
     private FilmService filmService;
     private FeedService feedService;
 
+    private ReviewStorage reviewDbStorage;
+    private ReviewRatingStorage reviewRatingDbStorage;
 
-    @Autowired
-    public ReviewService(ReviewDbStorage reviewDbStorage, ReviewRatingDbStorage reviewRatingDbStorage,
-                         UserService userService, FilmService filmService, FeedService feedService) {
-        this.reviewDbStorage = reviewDbStorage;
-        this.reviewRatingDbStorage = reviewRatingDbStorage;
-        this.userService = userService;
-        this.filmService = filmService;
-        this.feedService = feedService;
-    }
 
     public Review getById(Integer id) {
         log.debug("Запрошен отзыв с id = {}", id);

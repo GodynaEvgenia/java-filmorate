@@ -1,87 +1,107 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.*;
-import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.interfaces.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
+@AllArgsConstructor
 public class FilmService {
-    private FilmDbStorage filmStorage;
-    private UserService userService;
-    private final FilmMapper filmMapper;
+    private final UserService userService;
+    private final FeedService feedService;
     private final GenreService genreService;
-    private FeedService feedService;
 
-    @Autowired
-    public FilmService(FilmDbStorage filmStorage, UserService userService, FilmMapper filmMapper, GenreService genreService, FeedService feedService) {
-        this.filmStorage = filmStorage;
-        this.userService = userService;
-        this.filmMapper = filmMapper;
-        this.genreService = genreService;
-        this.feedService = feedService;
-    }
+    private final FilmStorage filmStorage;
+    private final RatingStorage ratingStorage;
+    private final LikesStorage likesStorage;
+    private final GenreStorage genreStorage;
+    private final DirectorStorage directorStorage;
+
+    private final FilmMapper filmMapper;
 
     public FilmDto get(long filmId) {
         Film film = filmStorage.get(filmId);
-        List<Genre> genres = getFilmGenres(filmId);
-        List<Director> directors = getFilmDirectors(filmId);
+        List<Genre> genres = genreService.getFilmGenres(filmId);
+        List<Director> directors = directorStorage.getFilmDirectors(filmId);
+        log.info("Получение фильмы по ID = " + filmId);
         return filmMapper.toDto(film, genres, directors);
     }
 
     public List<FilmDto> getAll() {
-        return filmStorage.getAll().stream().map(film -> {
-            List<Genre> genres = getFilmGenres(film.getId());
-            List<Director> directors = getFilmDirectors(film.getId());
+        List<Film> films = filmStorage.getAll();
+
+        List<Long> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
+
+        Map<Long, List<Genre>> genresByFilmId = genreStorage.getGenresForFilms(filmIds);
+        Map<Long, List<Director>> directorsByFilmId = directorStorage.getDirectorsForFilms(filmIds);
+
+        log.info("Получение всех фильмов");
+        return films.stream().map(film -> {
+            List<Genre> genres = genresByFilmId.getOrDefault(film.getId(), List.of());
+            List<Director> directors = directorsByFilmId.getOrDefault(film.getId(), List.of());
             return filmMapper.toDto(film, genres, directors);
         }).collect(Collectors.toList());
     }
 
     public FilmDto create(FilmDto filmDto) throws ValidationException {
         Film film = filmMapper.dtoToFilm(filmDto);
+
+        film.validate();
+        ratingStorage.findById(film.getRating());
+
         film = filmStorage.create(film);
-        List<Genre> genres = getFilmGenres(film.getId());
-        List<Director> directors = getFilmDirectors(film.getId());
+        List<Genre> genres = genreService.getFilmGenres(film.getId());
+        List<Director> directors = directorStorage.getFilmDirectors(film.getId());
+
+        log.info("Создание нового фильма");
         return filmMapper.toDto(film, genres, directors);
     }
 
     public FilmDto update(FilmDto filmDto) throws ValidationException {
         Film film = filmMapper.dtoToFilm(filmDto);
+
+        get(film.getId());
+
         film = filmStorage.update(film);
-        List<Genre> genres = getFilmGenres(film.getId());
-        List<Director> directors = getFilmDirectors(film.getId());
+        List<Genre> genres = genreService.getFilmGenres(film.getId());
+        List<Director> directors = directorStorage.getFilmDirectors(film.getId());
+
+        log.info("Обновление фильма с ID = " + film.getId());
         return filmMapper.toDto(film, genres, directors);
     }
 
     public void addLike(long id, long userId) {
         userService.get(userId);
-        filmStorage.addLike(id, userId);
+        likesStorage.addLike(id, userId);
         feedService.createFeed(userId, EventType.LIKE, EventOperation.ADD, id);
+        log.info("Добавление лайка у фильма с ID = " + id + " пользователем с ID = " + userId);
     }
 
     public void deleteLike(long id, long userId) {
         userService.get(userId);
-        filmStorage.deleteLike(id, userId);
+        likesStorage.deleteLike(id, userId);
         feedService.createFeed(userId, EventType.LIKE, EventOperation.REMOVE, id);
+        log.info("Удаление лайка у фильма с ID = " + id + " пользователем с ID = " + userId);
     }
 
     public List<Film> getPopular(int count) {
+        log.info("Запрос популярных фильмов");
         return filmStorage.getPopular(count);
-    }
-
-    public List<Genre> getFilmGenres(long filmId) {
-        return filmStorage.getFilmGenres(filmId);
     }
 
     public boolean deleteFilmById(Long id) {
         if (id == null || id < 1) throw new IllegalArgumentException("Фильм с id = " + id + " не найден");
+        log.info("Удаление фильма с ID = " + id);
         return filmStorage.deleteFilmById(id);
     }
 
@@ -102,15 +122,16 @@ public class FilmService {
             films = filmStorage.getPopularFilmsWithFilters(count, genreId, year);
         }
 
+        List<Long> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
+
+        Map<Long, List<Genre>> genresByFilmId = genreStorage.getGenresForFilms(filmIds);
+        Map<Long, List<Director>> directorsByFilmId = directorStorage.getDirectorsForFilms(filmIds);
+
         return films.stream().map(film -> {
-            List<Genre> genres = getFilmGenres(film.getId());
-            List<Director> directors = getFilmDirectors(film.getId());
+            List<Genre> genres = genresByFilmId.getOrDefault(film.getId(), List.of());
+            List<Director> directors = directorsByFilmId.getOrDefault(film.getId(), List.of());
             return filmMapper.toDto(film, genres, directors);
         }).collect(Collectors.toList());
-    }
-
-    public List<Film> getPopularFilmsWithFilters(int count, Long genreId, Integer year) {
-        return filmStorage.getPopularFilmsWithFilters(count, genreId, year);
     }
 
     public List<FilmDto> getCommonFilms(long userId, long friendId) {
@@ -125,8 +146,8 @@ public class FilmService {
 
         List<Long> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
 
-        Map<Long, List<Genre>> genresByFilmId = filmStorage.getGenresForFilms(filmIds);
-        Map<Long, List<Director>> directorsByFilmId = filmStorage.getDirectorsForFilms(filmIds);
+        Map<Long, List<Genre>> genresByFilmId = genreStorage.getGenresForFilms(filmIds);
+        Map<Long, List<Director>> directorsByFilmId = directorStorage.getDirectorsForFilms(filmIds);
 
         return films.stream().map(film -> {
             List<Genre> genres = genresByFilmId.getOrDefault(film.getId(), List.of());
@@ -143,8 +164,8 @@ public class FilmService {
         }
         List<Long> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
 
-        Map<Long, List<Genre>> genresByFilmId = filmStorage.getGenresForFilms(filmIds);
-        Map<Long, List<Director>> directorsByFilmId = filmStorage.getDirectorsForFilms(filmIds);
+        Map<Long, List<Genre>> genresByFilmId = genreStorage.getGenresForFilms(filmIds);
+        Map<Long, List<Director>> directorsByFilmId = directorStorage.getDirectorsForFilms(filmIds);
 
         return films.stream().map(film -> {
             List<Genre> genres = genresByFilmId.getOrDefault(film.getId(), List.of());
@@ -153,17 +174,13 @@ public class FilmService {
         }).collect(Collectors.toList());
     }
 
-    public List<Director> getFilmDirectors(long filmId) {
-        return filmStorage.getFilmDirectors(filmId);
-    }
-
     public List<FilmDto> searchFilms(String query, String[] by) {
         List<Film> films = filmStorage.searchFilms(query, by);
 
         List<Long> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
 
-        Map<Long, List<Genre>> genresByFilmId = filmStorage.getGenresForFilms(filmIds);
-        Map<Long, List<Director>> directorsByFilmId = filmStorage.getDirectorsForFilms(filmIds);
+        Map<Long, List<Genre>> genresByFilmId = genreStorage.getGenresForFilms(filmIds);
+        Map<Long, List<Director>> directorsByFilmId = directorStorage.getDirectorsForFilms(filmIds);
 
         return films.stream().map(film -> {
             List<Genre> genres = genresByFilmId.getOrDefault(film.getId(), List.of());

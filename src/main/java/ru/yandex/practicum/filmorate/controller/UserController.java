@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.FilmDto;
@@ -13,15 +13,10 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
+@AllArgsConstructor
 public class UserController {
-    UserService userService;
-    FeedService feedService;
-
-    @Autowired
-    public UserController(UserService userService, FeedService feedService) {
-        this.userService = userService;
-        this.feedService = feedService;
-    }
+    private final UserService userService;
+    private final FeedService feedService;
 
     @GetMapping()
     public List<User> findAll() {
@@ -61,8 +56,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends/common/{otherId}") //список друзей, общих с другим пользователем.
-    public Optional<List<User>> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
-        return Optional.of(userService.getCommonFriends(id, otherId));
+    public List<User> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
+        return userService.getCommonFriends(id, otherId);
     }
 
     @DeleteMapping("/{userId}")

@@ -10,8 +10,8 @@ import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.AppError;
 
-@RestControllerAdvice
 @Slf4j
+@RestControllerAdvice
 public class ErrorHandler {
     @ExceptionHandler
     public ResponseEntity<AppError> handleValidationException(final ValidationException e) {

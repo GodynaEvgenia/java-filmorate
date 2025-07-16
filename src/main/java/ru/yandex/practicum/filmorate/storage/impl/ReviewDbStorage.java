@@ -1,24 +1,26 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.impl;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
+import ru.yandex.practicum.filmorate.mapper.ReviewRowMapper;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.storage.interfaces.ReviewStorage;
 
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
 @Component
-@Slf4j
-@Repository
-public class ReviewDbStorage {
+@AllArgsConstructor
+public class ReviewDbStorage implements ReviewStorage {
+
+    private final JdbcTemplate jdbc;
+    private final ReviewRowMapper rowMapper;
 
     private static final String GET_REVIEW_BASE_QUERY =
             "SELECT review_id, film_id, user_id, useful, is_positive, content FROM reviews ";
@@ -33,15 +35,8 @@ public class ReviewDbStorage {
             "UPDATE reviews SET useful = ?, is_positive = ?, content = ? WHERE review_id = ?";
     private static final String DELETE_REVIEW_BY_ID_QUERY =
             "DELETE FROM reviews WHERE review_id = ?";
-    private static final String CHECK_REVIEW_EXISTS_BY_ID_QUERY =
-            "SELECT EXISTS(SELECT review_id FROM reviews WHERE review_id = ?) isExists";
-    private final JdbcTemplate jdbc;
 
-    @Autowired
-    public ReviewDbStorage(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
-    }
-
+    @Override
     public Review add(Review review) {
         KeyHolder holder = new GeneratedKeyHolder();
 
@@ -59,6 +54,7 @@ public class ReviewDbStorage {
         return getById(reviewId);
     }
 
+    @Override
     public Review update(Review filmReview) {
         jdbc.update(
                 UPDATE_REVIEW_QUERY,
@@ -70,39 +66,27 @@ public class ReviewDbStorage {
         return getById(filmReview.getReviewId());
     }
 
+    @Override
     public void delete(Integer id) {
         jdbc.update(DELETE_REVIEW_BY_ID_QUERY, id);
     }
 
+    @Override
     public Review getById(Integer id) {
-        return jdbc.query(GET_REVIEW_BY_ID_QUERY, this::mapRowToReview, id)
-                .stream()
-                .findAny()
-                .orElse(null);
+        try {
+            return jdbc.queryForObject(GET_REVIEW_BY_ID_QUERY, rowMapper, id);
+        } catch (EmptyResultDataAccessException ex) {
+            throw new ResourceNotFoundException("Отзыв не найден с ID: " + id);
+        }
     }
 
+    @Override
     public List<Review> getByFilmId(Integer id) {
-        return jdbc.query(GET_REVIEW_BY_FILM_ID_QUERY, this::mapRowToReview, id);
+        return jdbc.query(GET_REVIEW_BY_FILM_ID_QUERY, rowMapper, id);
     }
 
+    @Override
     public List<Review> getAll() {
-        return jdbc.query(GET_ALL_REVIEWS, this::mapRowToReview);
-    }
-
-    public boolean isExists(Integer id) {
-        return Boolean.TRUE.equals(jdbc.queryForObject(
-                CHECK_REVIEW_EXISTS_BY_ID_QUERY, (rs, rowNum) -> rs.getBoolean("isExists"), id
-        ));
-    }
-
-    public Review mapRowToReview(ResultSet rs, int rowNum) throws SQLException {
-        Review review = new Review();
-        review.setReviewId(rs.getInt("review_id"));
-        review.setContent(rs.getString("content"));
-        review.setIsPositive(rs.getBoolean("is_positive"));
-        review.setFilmId(rs.getLong("film_id"));
-        review.setUserId(rs.getLong("user_id"));
-        review.setUseful(rs.getInt("useful"));
-        return review;
+        return jdbc.query(GET_ALL_REVIEWS, rowMapper);
     }
 }
