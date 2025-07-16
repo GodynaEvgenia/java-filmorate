@@ -1,10 +1,11 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.interfaces;
 
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface FilmStorage {
 
@@ -16,10 +17,6 @@ public interface FilmStorage {
 
     Film update(Film film);
 
-    void addLike(long id, long userId);
-
-    void deleteLike(long id, long userId);
-
     List<Film> getPopular(int count);
 
     boolean deleteFilmById(Long id);
@@ -28,9 +25,11 @@ public interface FilmStorage {
 
     List<Film> getCommonFilms(Long userId, Long friendId);
 
-    Map<Long, List<Genre>> getGenresForFilms(List<Long> filmIds);
+    List<Film> getFilmsByDirectorSortBy(long directorId, String sortBy);
 
-    public Set<Long> findFilmLikes(User user);
+    Set<Long> findFilmLikes(User user);
 
-    public Optional<Film> findFilmById(Long filmId);
+    Map<Long, List<Long>> findFilmLikesMap(List<User> users);
+
+    List<Film> searchFilms(String query, String[] by);
 }

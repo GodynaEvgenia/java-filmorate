@@ -1,32 +1,30 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.*;
-import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.UserDbStorage;
+import ru.yandex.practicum.filmorate.storage.interfaces.DirectorStorage;
+import ru.yandex.practicum.filmorate.storage.interfaces.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.interfaces.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.interfaces.UserStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
 @Slf4j
+@Service
+@AllArgsConstructor
 public class UserService {
-    private UserDbStorage userStorage;
-    private FeedService feedService;
-    private FilmDbStorage filmStorage;
-    private FilmMapper filmMapper;
+    private final FeedService feedService;
 
-    @Autowired
-    public UserService(UserDbStorage userStorage, FeedService feedService, FilmDbStorage filmStorage, FilmMapper filmMapper) {
-        this.userStorage = userStorage;
-        this.feedService = feedService;
-        this.filmStorage = filmStorage;
-        this.filmMapper = filmMapper;
-    }
+    private final UserStorage userStorage;
+    private final FilmStorage filmStorage;
+    private final GenreStorage genreStorage;
+    private final DirectorStorage directorStorage;
+
+    private final FilmMapper filmMapper;
 
     public User get(long id) {
         return userStorage.get(id);
@@ -34,10 +32,6 @@ public class UserService {
 
     public List<User> getAll() {
         return userStorage.getAll();
-    }
-
-    public Map<Long, User> findAll() {
-        return userStorage.findAll();
     }
 
     public User create(User user) {
@@ -74,57 +68,68 @@ public class UserService {
         return userStorage.deleteUserById(userId);
     }
 
-    public User getUserById(Long id) {
-        return userStorage.findUserById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id = " + id + " не найден"));
-    }
-
     public List<FilmDto> getRecommendations(Long userId) {
-        User targetUser = getUserById(userId);
+        User user = get(userId);
 
-        Set<Long> targetLikes = new HashSet<>(filmStorage.findFilmLikes(targetUser));
+        Set<Long> filmsWithLikeByUser = new HashSet<>(filmStorage.findFilmLikes(user));
 
-        Collection<User> allUsers = getAll().stream()                       //
+        List<User> otherUsers = getAll().stream()                       //
                 .filter(u -> !u.getId().equals(userId))
                 .toList();
 
         Map<User, Integer> similarityMap = new HashMap<>();
 
-        for (User otherUser : allUsers) {
-            Set<Long> otherLikes = new HashSet<>(filmStorage.findFilmLikes(otherUser));
-            Set<Long> intersection = new HashSet<>(targetLikes);
-            intersection.retainAll(otherLikes);
-            similarityMap.put(otherUser, intersection.size());              //
+        Map<Long, List<Long>> otherUserWithFilmIdsMap = filmStorage.findFilmLikesMap(otherUsers);
+
+        for (User otherUser : otherUsers) {
+            if (otherUserWithFilmIdsMap.get(otherUser.getId()) != null) {
+                Set<Long> filmsWithLikeByOtherUser = new HashSet<>(otherUserWithFilmIdsMap.get(otherUser.getId()));
+                Set<Long> filmsWithLikeByUserCopy = new HashSet<>(filmsWithLikeByUser);
+                //ищем совпадение по ИД фильмов
+                filmsWithLikeByUserCopy.retainAll(filmsWithLikeByOtherUser);
+                //сохраняем количество совпадений у другого пользователя в мапу
+                similarityMap.put(otherUser, filmsWithLikeByUserCopy.size());
+            }
         }
 
         if (similarityMap.isEmpty()) {
             return Collections.emptyList();
         }
 
+        //ищем максимальное количество совпадений
         int maxSimilarity = similarityMap.values().stream().max(Integer::compareTo).orElse(0);
 
         if (maxSimilarity == 0) {
-            return Collections.emptyList();                             //
+            return Collections.emptyList();
         }
 
+        //Находим пользователей с таким количеством совпадений
         List<User> mostSimilarUsers = similarityMap.entrySet().stream()
                 .filter(e -> e.getValue() == maxSimilarity)
                 .map(Map.Entry::getKey)
-                .toList();                                          //
+                .toList();
 
-        Set<Long> recommendedFilmIds = new HashSet<>();
+        Map<Long, List<Long>> userWithFilmIdsMap = filmStorage.findFilmLikesMap(mostSimilarUsers);
+        List<Long> recommendedFilmIds = new ArrayList<>();
         for (User similarUser : mostSimilarUsers) {
-            Set<Long> likes = filmStorage.findFilmLikes(similarUser);
-            likes.removeAll(targetLikes); // Только те, которых нет у target
-            recommendedFilmIds.addAll(likes);
+            if (userWithFilmIdsMap.get(similarUser.getId()) != null) {
+                Set<Long> filmIds = new HashSet<>(userWithFilmIdsMap.get(similarUser.getId()));
+                //Удаляем повторения с основным пользователем
+                filmIds.removeAll(filmsWithLikeByUser);
+                recommendedFilmIds.addAll(filmIds);
+            }
         }
-        ;
+        recommendedFilmIds = recommendedFilmIds.stream().distinct().toList();
 
+        Map<Long, List<Genre>> genresByFilmId = genreStorage.getGenresForFilms(recommendedFilmIds);
+        Map<Long, List<Director>> directorsByFilmId = directorStorage.getDirectorsForFilms(recommendedFilmIds);
+
+        List<Long> finalRecommendedFilmIds = recommendedFilmIds;
         return filmStorage.getAll().stream()
-                .filter(film -> recommendedFilmIds.contains(film.getId()))
+                .filter(film -> finalRecommendedFilmIds.contains(film.getId()))
                 .map(film -> {
-                    List<Genre> genres = filmStorage.getFilmGenres(film.getId());
-                    List<Director> directors = filmStorage.getFilmDirectors(film.getId());
+                    List<Genre> genres = genresByFilmId.getOrDefault(film.getId(), List.of());
+                    List<Director> directors = directorsByFilmId.getOrDefault(film.getId(), List.of());
                     return filmMapper.toDto(film, genres, directors);
                 }).collect(Collectors.toList());
     }

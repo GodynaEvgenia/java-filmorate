@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.service.RatingService;
@@ -10,13 +10,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/mpa")
 @ControllerAdvice
+@AllArgsConstructor
 public class RatingController {
     private final RatingService ratingService;
-
-    @Autowired
-    public RatingController(RatingService ratingService) {
-        this.ratingService = ratingService;
-    }
 
     @GetMapping("/{id}")
     public Rating findById(@PathVariable int id) {
