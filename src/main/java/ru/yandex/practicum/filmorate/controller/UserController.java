@@ -14,8 +14,8 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    UserService userService;
-    FeedService feedService;
+    private UserService userService;
+    private FeedService feedService;
 
     @Autowired
     public UserController(UserService userService, FeedService feedService) {
