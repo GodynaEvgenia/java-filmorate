@@ -1,65 +1,46 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.mapper.FilmMapper;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.GenreService;
-import ru.yandex.practicum.filmorate.service.RatingService;
-import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
+@Validated
 @RestController
 @RequestMapping("/films")
 @ControllerAdvice
+@AllArgsConstructor
 public class FilmController {
     private final FilmService filmService;
-    private final UserService userService;
-    private final RatingService ratingService;
-    private final GenreService genreService;
-    private final FilmMapper mapper;
-
-    @Autowired
-    public FilmController(FilmService filmService,
-                          UserService userService,
-                          RatingService ratingService,
-                          GenreService genreService,
-                          FilmMapper filmMapper) {
-        this.filmService = filmService;
-        this.userService = userService;
-        this.ratingService = ratingService;
-        this.genreService = genreService;
-        this.mapper = filmMapper;
-    }
 
     @GetMapping()
-    public List<Film> getAll() {
+    public List<FilmDto> getAll() {
         return filmService.getAll();
     }
 
     @GetMapping("/{filmId}")
     public FilmDto findById(@PathVariable long filmId) {
-        Film film = filmService.get(filmId);
-        FilmDto filmDto = mapper.toDto(film);
-        return filmDto;
+        return filmService.get(filmId);
     }
 
     @PostMapping()
     public FilmDto create(@RequestBody FilmDto filmDto) {
-        Film film = mapper.dtoToFilm(filmDto);
-        film = filmService.create(film);
-        FilmDto result = mapper.toDto(film);
-        return result;
+        return filmService.create(filmDto);
     }
 
     @PutMapping()
-    public Film update(@Valid @RequestBody Film film) {
-        return filmService.update(film);
+    public FilmDto update(@Valid @RequestBody FilmDto filmDto) {
+        return filmService.update(filmDto);
     }
 
     @PutMapping("/{id}/like/{userId}") //пользователь ставит лайк фильму.
@@ -73,12 +54,40 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDto> getPopularFilms(@RequestParam(value = "count", defaultValue = "10") int count) {
-        List<Film> films = filmService.getPopular(count);
-        List<FilmDto> listFilmDto = new ArrayList<>();
-        for (Film film : films) {
-            listFilmDto.add(mapper.toDto(film));
-        }
-        return listFilmDto;
+    public List<FilmDto> getPopularFilms(
+            @RequestParam(value = "count", defaultValue = "10") int count,
+            @RequestParam(value = "genreId", required = false)
+                @Positive(message = "Genre ID must be positive") Long genreId,
+            @RequestParam(value = "year", required = false)
+                @Min(value = 1900, message = "Year must be no earlier than 1900")
+                @Max(value = 2100, message = "Year must be no later than 2100") Integer year) {
+        log.info("Request for popular films: count={}, genreId={}, year={}", count, genreId, year);
+        return filmService.getPopularFilms(count, genreId, year);
+    }
+
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFilms(@RequestParam Long userId, @RequestParam Long friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @DeleteMapping("/{id}")
+    public boolean deleteFilmById(@PathVariable Long id) {
+        return filmService.deleteFilmById(id);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmDto> getFilmsByDirectorSortBy(
+            @PathVariable long directorId,
+            @RequestParam(required = false) String sortBy) {
+        return filmService.getFilmsByDirectorSortBy(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    public List<FilmDto> searchFilms(
+            @RequestParam("query") String query,
+            @RequestParam(value = "by", required = false) String[] by) {
+        log.info("Параметры: query " + query);
+        log.info("Параметры: by " + Arrays.toString(by));
+        return filmService.searchFilms(query, by);
     }
 }

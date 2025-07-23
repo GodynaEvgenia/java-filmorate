@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -26,8 +27,10 @@ public class Film {
     private int duration;
     private Set<Long> genres;
     private Integer rating;
+    private Set<Long> likes = new HashSet<>();
+    private Set<Director> directors;
 
-    public Film(Long id, String name, String description, LocalDate releaseDate, int duration, Integer rating) {
+    public Film(Long id, String name, String description, LocalDate releaseDate, int duration, Integer rating, Set<Long> likes) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -35,6 +38,8 @@ public class Film {
         this.duration = duration;
         this.genres = new LinkedHashSet<>();
         this.rating = rating;
+        this.likes = likes;
+        this.directors = new LinkedHashSet<>();
     }
 
     public void validate() throws ValidationException {
